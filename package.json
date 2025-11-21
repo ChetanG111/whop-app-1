@@ -12,7 +12,7 @@
 		"@gsap/react": "^2.1.2",
 		"@vercel/functions": "^3.1.4",
 		"@whop-apps/sdk": "^0.0.1-canary.117",
-		"@whop/react": "0.3.0",
+		"@whop/react": "^0.3.0",
 		"@whop/sdk": "^0.0.3",
 		"clsx": "^2.1.1",
 		"gsap": "^3.13.0",
