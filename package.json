@@ -20,7 +20,6 @@
 		"frosted-ui": "^0.0.1-canary.89",
 		"gsap": "^3.13.0",
 		"lucide-react": "^0.554.0",
-		"motion": "^12.23.24",
 		"next": "16.0.0",
 		"react": "19.2.0",
 		"react-dom": "19.2.0",
