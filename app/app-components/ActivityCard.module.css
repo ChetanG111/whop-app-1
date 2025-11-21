@@ -1,0 +1,38 @@
+.activityCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 13px; /* Reduced from 16px by ~20% */
+  padding: 16px; /* Reduced from 20px by 20% */
+  border-radius: 16px;
+  background-color: var(--bg-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-subtle);
+}
+
+.thumbnail {
+  width: 96px; /* Reduced from 120px by 20% */
+  height: 96px; /* Reduced from 120px by 20% */
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cardDescription {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}

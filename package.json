@@ -9,13 +9,20 @@
 		"lint": "biome lint"
 	},
 	"dependencies": {
+		"@gsap/react": "^2.1.2",
 		"@vercel/functions": "^3.1.4",
 		"@whop-apps/sdk": "^0.0.1-canary.117",
 		"@whop/react": "0.3.0",
 		"@whop/sdk": "^0.0.3",
+		"clsx": "^2.1.1",
+		"gsap": "^3.13.0",
+		"lucide-react": "^0.554.0",
+		"motion": "^12.23.24",
 		"next": "16.0.0",
 		"react": "19.2.0",
-		"react-dom": "19.2.0"
+		"react-dom": "19.2.0",
+		"react-swipeable": "^7.0.2",
+		"tailwind-merge": "^3.4.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.6",
