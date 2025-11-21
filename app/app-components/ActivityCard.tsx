@@ -11,14 +11,20 @@ interface Activity {
   title: string;
   description: string;
   user?: string;
+  sharedNote?: boolean;
+  sharedPhoto?: boolean;
 }
 
 interface ActivityCardProps {
   activity: Activity;
   index: number;
+  isPublicView?: boolean;
 }
 
-const ActivityCard = ({ activity, index }: ActivityCardProps) => {
+const ActivityCard = ({ activity, index, isPublicView = false }: ActivityCardProps) => {
+  const showDescription = activity.description && (!isPublicView || activity.sharedNote);
+  const showThumbnail = activity.thumbnail && (!isPublicView || activity.sharedPhoto);
+
   return (
     <AnimatedItem index={index}>
       <div key={activity.id} className={styles.activityCard}>
@@ -26,27 +32,31 @@ const ActivityCard = ({ activity, index }: ActivityCardProps) => {
           <h3 className={styles.cardTitle}>
             {activity.user ? `${activity.user}'s ${activity.title}` : activity.title}
           </h3>
-          <p className={styles.cardDescription}>{activity.description}</p>
+          {showDescription && (
+            <p className={styles.cardDescription}>{activity.description}</p>
+          )}
         </div>
-        <Dialog.Root>
-          <Dialog.Trigger>
-            <img
-              src={activity.thumbnail}
-              alt={activity.title}
-              className={`${styles.thumbnail} ${styles.rightAlign}`}
-              style={{ cursor: "pointer" }}
-            />
-          </Dialog.Trigger>
-          <Dialog.Content className={styles.dialogContent}>
-            {/* Accessible title for screen readers (visually hidden) */}
-            <VisuallyHidden>
-              <Dialog.Title>{activity.title}</Dialog.Title>
-            </VisuallyHidden>
-            <div className={styles.imageContainer}>
-              <img src={activity.thumbnail} alt={activity.title} className={styles.fullImage} />
-            </div>
-          </Dialog.Content>
-        </Dialog.Root>
+        {showThumbnail && (
+          <Dialog.Root>
+            <Dialog.Trigger>
+              <img
+                src={activity.thumbnail}
+                alt={activity.title}
+                className={`${styles.thumbnail} ${styles.rightAlign}`}
+                style={{ cursor: "pointer" }}
+              />
+            </Dialog.Trigger>
+            <Dialog.Content className={styles.dialogContent}>
+              {/* Accessible title for screen readers (visually hidden) */}
+              <VisuallyHidden>
+                <Dialog.Title>{activity.title}</Dialog.Title>
+              </VisuallyHidden>
+              <div className={styles.imageContainer}>
+                <img src={activity.thumbnail} alt={activity.title} className={styles.fullImage} />
+              </div>
+            </Dialog.Content>
+          </Dialog.Root>
+        )}
       </div>
     </AnimatedItem>
   );

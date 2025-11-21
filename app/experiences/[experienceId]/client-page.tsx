@@ -68,26 +68,32 @@ const YourActivityPage = ({ user }: { user: any }) => {
     }
   }, [activeView]);
   const handleLogSubmit = async (payload: any) => {
-    // Handle log submission - connect to your backend here
-    console.log('Log submitted:', payload);
-    console.log('User ID:', user?.id);
-    console.log('Experience ID:', experienceId);
-    
-    // Mock: Add to local state
-    const newLog = {
-      id: Date.now(),
-      thumbnail: payload.type === 'Workout' 
+    const createLog = (thumbnail: string) => {
+      const newLog = {
+        id: Date.now(),
+        thumbnail,
+        title: `${user?.username || 'User'}: ${payload.muscleGroup || payload.type}`,
+        description: payload.note || 'No notes',
+        sharedNote: payload.sharedNote,
+        sharedPhoto: payload.sharedPhoto,
+      };
+      setUserLogs(prev => [newLog, ...prev]);
+      setFeedLogs(prev => [newLog, ...prev]);
+    };
+
+    if (payload.uploadedImage instanceof File) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        createLog(reader.result as string);
+      };
+      reader.readAsDataURL(payload.uploadedImage);
+    } else {
+      const placeholder = payload.type === 'Workout'
         ? 'https://dummyimage.com/120x120/3DD9D9/0F1419.png&text=W'
         : payload.type === 'Rest'
         ? 'https://dummyimage.com/120x120/E57373/0F1419.png&text=R'
-        : 'https://dummyimage.com/120x120/D4C5B0/0F1419.png&text=Ref',
-      title: `${user?.username || 'User'}: ${payload.muscleGroup || payload.type}`,
-      description: payload.note || 'No notes',
-    };
-    
-    setUserLogs(prev => [newLog, ...prev]);
-    if (payload.sharedPhoto || payload.sharedNote) {
-      setFeedLogs(prev => [newLog, ...prev]);
+        : 'https://dummyimage.com/120x120/D4C5B0/0F1419.png&text=Ref';
+      createLog(placeholder);
     }
   };
   const handleProfileSave = (data: { name: string; goals: string }) => {
@@ -124,7 +130,7 @@ const YourActivityPage = ({ user }: { user: any }) => {
             ) : (
               userLogs.map((activity: any, i: number) => (
                 <div key={activity.id} className={styles.cardListItem}>
-                  <MemoActivityCard activity={activity} index={i} />
+                  <MemoActivityCard activity={activity} index={i} isPublicView={false} />
                 </div>
               ))
             )}
@@ -154,7 +160,7 @@ const YourActivityPage = ({ user }: { user: any }) => {
           ) : (
             feedLogs.map((activity: any, i: number) => (
               <div key={activity.id} className={styles.cardListItem}>
-                <MemoActivityCard activity={activity} index={i} />
+                <MemoActivityCard activity={activity} index={i} isPublicView={true} />
               </div>
             ))
           )}

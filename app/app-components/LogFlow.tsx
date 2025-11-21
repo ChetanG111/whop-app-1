@@ -19,7 +19,7 @@ const LogFlow = ({ onClose, initialError, onSubmit, isSubmitting }: LogFlowProps
   const [note, setNote] = useState('');
   const [isPublicNote, setIsPublicNote] = useState(false);
   const [isPublicPhoto, setIsPublicPhoto] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -192,11 +192,7 @@ const LogFlow = ({ onClose, initialError, onSubmit, isSubmitting }: LogFlowProps
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setUploadedImage(file);
     }
   };
 
@@ -208,7 +204,7 @@ const LogFlow = ({ onClose, initialError, onSubmit, isSubmitting }: LogFlowProps
           onClick={() => fileInputRef.current?.click()}
         >
           {uploadedImage ? (
-            <img src={uploadedImage} alt="Uploaded" className={styles.uploadedImage} />
+            <img src={URL.createObjectURL(uploadedImage)} alt="Uploaded" className={styles.uploadedImage} />
           ) : (
             <p>Tap here to upload photo</p>
           )}
@@ -248,12 +244,11 @@ const LogFlow = ({ onClose, initialError, onSubmit, isSubmitting }: LogFlowProps
               note: note,
               sharedNote: isPublicNote,
               timestamp: new Date().toISOString(),
+              uploadedImage: uploadedImage,
+              sharedPhoto: isPublicPhoto,
             };
             if (selection === 'Workout') {
               payload.muscleGroup = workoutType;
-              payload.sharedPhoto = isPublicPhoto;
-            } else {
-              payload.sharedPhoto = false;
             }
             await onSubmit(payload);
             onClose();
