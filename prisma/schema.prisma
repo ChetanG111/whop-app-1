@@ -1,0 +1,134 @@
+// Prisma schema for Fitness Accountability App
+// Database: PostgreSQL (Supabase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  MEMBER
+  COACH
+}
+
+enum CheckInType {
+  WORKOUT
+  REST
+  REFLECTION
+}
+
+enum MuscleGroup {
+  PUSH
+  PULL
+  LEGS
+  CARDIO
+  FULL_BODY
+  OTHER
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Whop Integration
+  whopUserId String   @unique
+  username   String?
+  email      String?
+  role       UserRole @default(MEMBER)
+
+  // Streak & Activity Tracking
+  currentStreak    Int      @default(0)
+  longestStreak    Int      @default(0)
+  lastCheckInDate  DateTime? @map("lastCheckinDate")
+  lastActiveDate   DateTime @default(now())
+
+  // Photo Tracking
+  lastPhotoDate    DateTime?
+
+  // Relations
+  checkIns CheckIn[]
+  photos   Photo[]
+
+  @@index([whopUserId])
+  @@index([lastActiveDate])
+  @@index([role])
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // User Reference
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  whopUserId String // Denormalized for faster queries
+
+  // Check-in Data
+  type        CheckInType
+  checkInDate DateTime    @db.Date // Store as DATE (not timestamp) for one-per-day constraint
+  muscleGroup MuscleGroup?
+  note        String?
+  isPublicNote Boolean    @default(false)
+
+  // Photo Reference
+  photoId   String?
+  photo     Photo?  @relation(fields: [photoId], references: [id])
+
+  @@unique([whopUserId, checkInDate]) // One check-in per user per day
+  @@index([whopUserId, checkInDate])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // User Reference
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  whopUserId String // Denormalized for faster queries
+
+  // Photo Data
+  url       String
+  isPublic  Boolean  @default(false)
+  fileSize  Int?     // In bytes
+  mimeType  String?  // e.g., "image/jpeg"
+
+  // Relations
+  checkIns CheckIn[]
+
+  @@index([whopUserId, createdAt])
+  @@index([isPublic, createdAt]) // For public feed queries
+}
+
+model CommunityStats {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Date for stats (one record per day)
+  date DateTime @unique @db.Date
+
+  // Aggregated Stats
+  totalMembers        Int @default(0)
+  activeToday         Int @default(0)
+  workoutCheckIns     Int @default(0) @map("workoutCount")
+  restCheckIns        Int @default(0) @map("restCount")
+  reflectionCheckIns  Int @default(0) @map("reflectionCount")
+
+  @@index([date])
+}

@@ -6,13 +6,14 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import styles from "./ActivityCard.module.css";
 
 interface Activity {
-  id: number;
+  id: string;
   thumbnail: string;
   title: string;
   description: string;
   user?: string;
   sharedNote?: boolean;
   sharedPhoto?: boolean;
+  timestamp: any;
 }
 
 interface ActivityCardProps {

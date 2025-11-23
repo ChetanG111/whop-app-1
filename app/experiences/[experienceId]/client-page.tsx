@@ -8,10 +8,13 @@ import LogFlow from '../../app-components/LogFlow';
 import ProfileView from '../../app-components/ProfileView';
 import ActivityCard from '../../app-components/ActivityCard';
 import { useSwipeable } from 'react-swipeable';
+import { apiClient, UserData, CheckinData, FeedItem } from '@/lib/api-client';
+import { uploadPhoto } from '@/lib/supabaseClient';
+import { CheckInType } from '@prisma/client';
 
 const MemoActivityCard = memo(ActivityCard);
 
-const YourActivityPage = ({ user }: { user: any }) => {
+const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string | null }) => {
   const params = useParams();
   const experienceId = params?.experienceId as string;
   const [activeView, setActiveView] = useState('You');
@@ -22,9 +25,52 @@ const YourActivityPage = ({ user }: { user: any }) => {
   const [isProfileViewOpen, setIsProfileViewOpen] = useState(false);
   const [checkinError, setCheckinError] = useState<string | null>(null);
   const [direction, setDirection] = useState(0);
-  // Mock data for UI demonstration
-  const [userLogs, setUserLogs] = useState<any[]>([]);
-  const [feedLogs, setFeedLogs] = useState<any[]>([]);
+  
+  // Data state
+  const [dbUser, setDbUser] = useState<UserData | null>(null);
+  const [userLogs, setUserLogs] = useState<CheckinData[]>([]);
+  const [feedLogs, setFeedLogs] = useState<FeedItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize user and fetch data
+  useEffect(() => {
+    const initData = async () => {
+      if (!token) {
+        setCheckinError('Authentication token is missing. Please reload.');
+        setIsLoading(false);
+        return;
+      }
+      try {
+        // 1. Initialize/Get User
+        const { user } = await apiClient.initUser(token);
+        setDbUser(user);
+
+        // 2. Get History
+        const { checkins: userHistory } = await apiClient.getHistory(token);
+        setUserLogs(userHistory);
+
+        // 3. Get Feed
+        const { feed } = await apiClient.getFeed(token);
+        setFeedLogs(feed);
+      } catch (error: any) {
+        console.error('Failed to initialize data:', error);
+        if (error?.message) {
+          console.error('Error message:', error.message);
+        }
+        if (error?.stack) {
+          console.error('Error stack:', error.stack);
+        }
+        setCheckinError('Failed to load data. Please try refreshing.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (whopUser?.id) {
+      initData();
+    }
+  }, [whopUser, token]);
+
   const variants = {
     enter: (direction: number) => ({
       x: direction > 0 ? '5%' : '-5%',
@@ -67,40 +113,78 @@ const YourActivityPage = ({ user }: { user: any }) => {
       });
     }
   }, [activeView]);
-  const handleLogSubmit = async (payload: any) => {
-    const createLog = (thumbnail: string) => {
-      const newLog = {
-        id: Date.now(),
-        thumbnail,
-        title: `${user?.username || 'User'}: ${payload.muscleGroup || payload.type}`,
-        description: payload.note || 'No notes',
-        sharedNote: payload.sharedNote,
-        sharedPhoto: payload.sharedPhoto,
-      };
-      setUserLogs(prev => [newLog, ...prev]);
-      setFeedLogs(prev => [newLog, ...prev]);
-    };
 
-    if (payload.uploadedImage instanceof File) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        createLog(reader.result as string);
+  const handleLogSubmit = async (payload: any) => {
+    setCheckinError(null);
+    if (!token) {
+      setCheckinError('Cannot submit log: authentication token is missing.');
+      return;
+    }
+    try {
+      let photoUrl: string | undefined;
+
+      // Upload photo if present
+      if (payload.uploadedImage instanceof File) {
+        const { url, error } = await uploadPhoto(payload.uploadedImage, whopUser.id);
+        if (error) throw new Error(error);
+        photoUrl = url;
+      }
+
+      // Map payload type to CheckInType
+      const typeMap: Record<string, CheckInType> = {
+        'Workout': 'WORKOUT',
+        'Rest': 'REST',
+        'Reflection': 'REFLECTION'
       };
-      reader.readAsDataURL(payload.uploadedImage);
-    } else {
-      const placeholder = payload.type === 'Workout'
-        ? 'https://dummyimage.com/120x120/3DD9D9/0F1419.png&text=W'
-        : payload.type === 'Rest'
-        ? 'https://dummyimage.com/120x120/E57373/0F1419.png&text=R'
-        : 'https://dummyimage.com/120x120/D4C5B0/0F1419.png&text=Ref';
-      createLog(placeholder);
+      
+      const type = typeMap[payload.type] || 'WORKOUT';
+
+      // Create check-in
+      const { checkin } = await apiClient.createCheckin(token, {
+        type,
+        muscleGroup: payload.muscleGroup ? payload.muscleGroup.toUpperCase() : undefined,
+        note: payload.note,
+        isPublicNote: payload.sharedNote, // Assuming sharedNote means public note
+        photoUrl: photoUrl, 
+      } as any);
+
+      // Update local state
+      setUserLogs(prev => [checkin, ...prev]);
+      
+      // If public, add to feed (optimistic update or re-fetch)
+      if (checkin.isPublicNote || checkin.photo?.isPublic) {
+        const feedItem: FeedItem = {
+          ...checkin,
+          user: {
+            whopUserId: whopUser.id,
+            username: whopUser.username,
+          }
+        };
+        setFeedLogs(prev => [feedItem, ...prev]);
+      }
+
+      // Update user streak locally (optimistic)
+      if (dbUser) {
+        const { user } = await apiClient.initUser(token);
+        setDbUser(user);
+      }
+
+    } catch (error: any) {
+      console.error('Check-in failed:', error);
+      setCheckinError(error.message || 'Failed to submit check-in');
     }
   };
+
   const handleProfileSave = (data: { name: string; goals: string }) => {
     console.log('Profile saved:', data);
-    console.log('User ID:', user?.id);
+    // Implement profile update API if needed
   };
+
   const renderYouView = () => {
+    const heatmapChartData = userLogs.map((log) => ({
+      date: new Date(log.checkInDate).toISOString().split('T')[0],
+      value: log.type === 'WORKOUT' ? 1 : log.type === 'REST' ? 2 : 0,
+    }));
     return (
       <motion.div
         key="you"
@@ -114,23 +198,43 @@ const YourActivityPage = ({ user }: { user: any }) => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h1 className={styles.pageTitle}>Your Activity</h1>
-          {user && (
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-              {user.username || user.email}
+          {dbUser && (
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', gap: '12px' }}>
+              <span>🔥 {dbUser.currentStreak} Day Streak</span>
             </div>
           )}
         </div>
-        <Heatmap />
+        
+        {/* Pass real check-in data to Heatmap if it supports it, otherwise it uses mock */}
+        <Heatmap data={heatmapChartData} /> 
+
         <AnimatePresence mode='popLayout'>
           <div className={styles.cardList}>
-            {userLogs.length === 0 ? (
+            {isLoading ? (
+               <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>Loading...</p>
+            ) : userLogs.length === 0 ? (
               <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>
                 No activity yet. Tap + to log your first workout!
               </p>
             ) : (
-              userLogs.map((activity: any, i: number) => (
+              userLogs.map((activity, i) => (
                 <div key={activity.id} className={styles.cardListItem}>
-                  <MemoActivityCard activity={activity} index={i} isPublicView={false} />
+                  {/* Map API data to ActivityCard props */}
+                  <MemoActivityCard 
+                    activity={{
+                      id: activity.id,
+                      title: `${dbUser?.username || 'You'}: ${activity.muscleGroup || activity.type}`,
+                      description: activity.note || '',
+                      thumbnail: activity.photo?.url || (
+                        activity.type === 'WORKOUT' ? 'https://dummyimage.com/120x120/3DD9D9/0F1419.png&text=W' :
+                        activity.type === 'REST' ? 'https://dummyimage.com/120x120/E57373/0F1419.png&text=R' :
+                        'https://dummyimage.com/120x120/D4C5B0/0F1419.png&text=Ref'
+                      ),
+                      timestamp: activity.createdAt,
+                    }} 
+                    index={i} 
+                    isPublicView={false} 
+                  />
                 </div>
               ))
             )}
@@ -139,6 +243,7 @@ const YourActivityPage = ({ user }: { user: any }) => {
       </motion.div>
     );
   };
+
   const renderFeedView = () => {
     return (
       <motion.div
@@ -153,14 +258,30 @@ const YourActivityPage = ({ user }: { user: any }) => {
       >
         <h1 className={styles.pageTitle}>Public Feed</h1>
         <div className={styles.cardList}>
-          {feedLogs.length === 0 ? (
+          {isLoading ? (
+             <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>Loading...</p>
+          ) : feedLogs.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>
               No public posts yet. Share your workouts to appear here!
             </p>
           ) : (
-            feedLogs.map((activity: any, i: number) => (
+            feedLogs.map((activity, i) => (
               <div key={activity.id} className={styles.cardListItem}>
-                <MemoActivityCard activity={activity} index={i} isPublicView={true} />
+                <MemoActivityCard 
+                  activity={{
+                    id: activity.id,
+                    title: `${activity.user.username || 'User'}: ${activity.muscleGroup || activity.type}`,
+                    description: activity.note || '',
+                    thumbnail: activity.photo?.url || (
+                      activity.type === 'WORKOUT' ? 'https://dummyimage.com/120x120/3DD9D9/0F1419.png&text=W' :
+                      activity.type === 'REST' ? 'https://dummyimage.com/120x120/E57373/0F1419.png&text=R' :
+                      'https://dummyimage.com/120x120/D4C5B0/0F1419.png&text=Ref'
+                    ),
+                    timestamp: activity.createdAt,
+                  }} 
+                  index={i} 
+                  isPublicView={true} 
+                />
               </div>
             ))
           )}
@@ -168,6 +289,7 @@ const YourActivityPage = ({ user }: { user: any }) => {
       </motion.div>
     );
   };
+
   return (
     <div className={styles.container}>
       {checkinError && (
@@ -206,7 +328,7 @@ const YourActivityPage = ({ user }: { user: any }) => {
           <ProfileView 
             onClose={() => setIsProfileViewOpen(false)}
             onSave={handleProfileSave}
-            initialName={user?.username || ''}
+            initialName={dbUser?.username || whopUser?.username || ''}
           />
         )}
       </AnimatePresence>
