@@ -25,6 +25,11 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
   const [isProfileViewOpen, setIsProfileViewOpen] = useState(false);
   const [checkinError, setCheckinError] = useState<string | null>(null);
   const [direction, setDirection] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if we're in dev mode (localhost OR Whop dev mode)
+  const isDevMode = process.env.NODE_ENV === 'development' || 
+                    (typeof window !== 'undefined' && window.location.search.includes('whop-dev'));
   
   // Data state
   const [dbUser, setDbUser] = useState<UserData | null>(null);
@@ -53,14 +58,9 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
         const { feed } = await apiClient.getFeed(token);
         setFeedLogs(feed);
       } catch (error: any) {
-        console.error('Failed to initialize data:', error);
-        if (error?.message) {
-          console.error('Error message:', error.message);
-        }
-        if (error?.stack) {
-          console.error('Error stack:', error.stack);
-        }
-        setCheckinError('Failed to load data. Please try refreshing.');
+        // Show detailed error message
+        const errorMsg = error?.error?.message || error?.message || 'Failed to load data. Please try refreshing.';
+        setCheckinError(errorMsg);
       } finally {
         setIsLoading(false);
       }
@@ -116,8 +116,11 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
 
   const handleLogSubmit = async (payload: any) => {
     setCheckinError(null);
+    setIsSubmitting(true);
+    
     if (!token) {
       setCheckinError('Cannot submit log: authentication token is missing.');
+      setIsSubmitting(false);
       return;
     }
     try {
@@ -134,6 +137,7 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
       const typeMap: Record<string, CheckInType> = {
         'Workout': 'WORKOUT',
         'Rest': 'REST',
+        'Reflect': 'REFLECTION',
         'Reflection': 'REFLECTION'
       };
       
@@ -160,7 +164,7 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
             username: whopUser.username,
           }
         };
-        setFeedLogs(prev => [feedItem, ...prev]);
+        setFeedLogs(prev => [feedItem, ...(prev || [])]);
       }
 
       // Update user streak locally (optimistic)
@@ -168,16 +172,60 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
         const { user } = await apiClient.initUser(token);
         setDbUser(user);
       }
+      
+      // Close the modal on success
+      setIsLogFlowOpen(false);
 
     } catch (error: any) {
-      console.error('Check-in failed:', error);
-      setCheckinError(error.message || 'Failed to submit check-in');
+      // Get the error message from different possible locations
+      let errorMessage = 'Failed to submit check-in';
+      
+      if (error?.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.status === 409) {
+        errorMessage = 'You have already checked in today';
+      }
+      
+      setCheckinError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleProfileSave = (data: { name: string; goals: string }) => {
     console.log('Profile saved:', data);
     // Implement profile update API if needed
+  };
+
+  const handleClearData = async () => {
+    if (!confirm('Are you sure you want to clear all your data? This cannot be undone.')) {
+      return;
+    }
+    
+    if (!token) {
+      alert('Cannot clear data: authentication token is missing.');
+      return;
+    }
+    
+    try {
+      // Call API to clear database data
+      await apiClient.clearUserData(token);
+      
+      // Clear local state
+      setUserLogs([]);
+      setFeedLogs([]);
+      setDbUser(prev => prev ? { ...prev, currentStreak: 0, longestStreak: 0, lastCheckInDate: null } : null);
+      
+      alert('Data cleared successfully');
+      
+      // Reload to reset everything
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to clear data:', error);
+      alert('Failed to clear data');
+    }
   };
 
   const renderYouView = () => {
@@ -198,11 +246,31 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h1 className={styles.pageTitle}>Your Activity</h1>
-          {dbUser && (
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', gap: '12px' }}>
-              <span>🔥 {dbUser.currentStreak} Day Streak</span>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {dbUser && (
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <span>🔥 {dbUser.currentStreak} Day Streak</span>
+              </div>
+            )}
+            {isDevMode && (
+              <motion.button
+                onClick={handleClearData}
+                whileTap={{ scale: 0.9 }}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  backgroundColor: '#E57373',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Clear Data
+              </motion.button>
+            )}
+          </div>
         </div>
         
         {/* Pass real check-in data to Heatmap if it supports it, otherwise it uses mock */}
@@ -212,7 +280,7 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
           <div className={styles.cardList}>
             {isLoading ? (
                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>Loading...</p>
-            ) : userLogs.length === 0 ? (
+            ) : !userLogs || userLogs.length === 0 ? (
               <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>
                 No activity yet. Tap + to log your first workout!
               </p>
@@ -260,7 +328,7 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
         <div className={styles.cardList}>
           {isLoading ? (
              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>Loading...</p>
-          ) : feedLogs.length === 0 ? (
+          ) : !feedLogs || feedLogs.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '32px' }}>
               No public posts yet. Share your workouts to appear here!
             </p>
@@ -320,6 +388,7 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
           <LogFlow 
             onClose={() => setIsLogFlowOpen(false)} 
             onSubmit={handleLogSubmit}
+            isSubmitting={isSubmitting}
           />
         )}
       </AnimatePresence>

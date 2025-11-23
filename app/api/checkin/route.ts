@@ -66,11 +66,15 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    console.log('[checkin POST] Starting request');
+    
     // Verify Whop token
     const { whopUserId } = await verifyWhopToken(req);
+    console.log('[checkin POST] User verified:', whopUserId);
 
     // Parse request body
     const body = await req.json();
+    console.log('[checkin POST] Request body:', body);
 
     // Validate required fields
     if (!body.type || !Object.values(CheckInType).includes(body.type)) {
@@ -158,12 +162,12 @@ export async function POST(req: NextRequest) {
 
     // Handle duplicate check-in
     if (error.error?.code === 'DUPLICATE_CHECKIN') {
-      return NextResponse.json(error.error, { status: 409 });
+      return NextResponse.json({ error: error.error }, { status: 409 });
     }
 
     // Handle validation errors
     if (error.error?.code === 'VALIDATION_ERROR') {
-      return NextResponse.json(error.error, { status: 400 });
+      return NextResponse.json({ error: error.error }, { status: 400 });
     }
 
     // Handle other errors

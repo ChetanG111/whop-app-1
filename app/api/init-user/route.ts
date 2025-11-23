@@ -14,11 +14,16 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('[init-user] Starting request');
+    console.log('[init-user] Headers:', Object.fromEntries(req.headers.entries()));
+    
     // Verify Whop token
     const { whopUserId, username } = await verifyWhopToken(req);
+    console.log('[init-user] Token verified:', { whopUserId, username });
 
     // Find or create user
     const user = await findOrCreateUser(whopUserId, username as string | undefined);
+    console.log('[init-user] User found/created:', user.id);
 
     return NextResponse.json({
       success: true,
@@ -53,6 +58,7 @@ export async function POST(req: NextRequest) {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to initialize user',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined,
         },
       },
       { status: 500 }

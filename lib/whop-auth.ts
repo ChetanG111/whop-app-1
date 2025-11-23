@@ -38,16 +38,52 @@ export async function verifyWhopToken(req: NextRequest): Promise<WhopAuthResult>
       };
     }
 
-    // Extract user ID from token (This assumes the token IS the user ID)
-    const userId = token;
-
-    if (!userId || !userId.startsWith('user_')) {
+    // Check if token is a JWT (starts with "eyJ") or a simple user ID
+    let userId: string;
+    
+    if (token.startsWith('eyJ')) {
+      // It's a JWT - decode it to get the user ID
+      try {
+        const payload = JSON.parse(
+          Buffer.from(token.split('.')[1], 'base64').toString('utf-8')
+        );
+        userId = payload.sub; // JWT subject contains user ID
+        
+        if (!userId || !userId.startsWith('user_')) {
+          throw new Error('Invalid user ID in JWT');
+        }
+      } catch (jwtError) {
+        console.error('JWT decode error:', jwtError);
+        throw {
+          error: {
+            code: 'INVALID_TOKEN_FORMAT',
+            message: 'Invalid JWT token format',
+          },
+          status: 401,
+        };
+      }
+    } else if (token.startsWith('user_')) {
+      // Simple user ID format (legacy or dev mode)
+      userId = token;
+    } else {
       throw {
         error: {
           code: 'INVALID_TOKEN_FORMAT',
-          message: 'Invalid authentication token format, expected user_...',
+          message: 'Invalid authentication token format, expected JWT or user_...',
         },
         status: 401,
+      };
+    }
+
+    // Development mode: skip Whop API verification for test user
+    if (process.env.NODE_ENV === 'development' && userId === process.env.NEXT_PUBLIC_WHOP_AGENT_USER_ID) {
+      const url = new URL(req.url);
+      const experienceId = url.searchParams.get('experienceId') || undefined;
+      
+      return {
+        whopUserId: userId,
+        username: 'DevUser',
+        experienceId,
       };
     }
 

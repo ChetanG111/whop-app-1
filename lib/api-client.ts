@@ -71,15 +71,31 @@ async function fetchWithAuth(url: string, token: string, options: RequestInit = 
     headers,
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
+    let errorData;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      errorData = await response.json();
+    } else {
+      // Response is not JSON (might be HTML error page)
+      const text = await response.text();
+      throw {
+        status: response.status,
+        error: { 
+          code: 'INVALID_RESPONSE', 
+          message: `Server returned ${response.status}: ${response.statusText}` 
+        },
+      };
+    }
+
     throw {
       status: response.status,
-      error: data.error || { code: 'UNKNOWN_ERROR', message: 'An unknown error occurred' },
+      error: errorData.error || errorData || { code: 'UNKNOWN_ERROR', message: 'An unknown error occurred' },
     };
   }
 
+  const data = await response.json();
   return data;
 }
 
@@ -121,5 +137,10 @@ export const apiClient = {
 
   getCommunityStats: async (token: string): Promise<{ stats: CommunityStats }> => {
     return fetchWithAuth('/api/community-stats', token);
+  },
+
+  // Dev only - clear user data
+  clearUserData: async (token: string): Promise<{ success: boolean; message: string }> => {
+    return fetchWithAuth('/api/clear-data', token, { method: 'DELETE' });
   },
 };
