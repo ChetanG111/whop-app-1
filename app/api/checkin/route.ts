@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       const photo = await createPhoto({
         whopUserId,
         url: body.photoUrl,
-        isPublic: true, // Default to public for now, or get from body
+        isPublic: body.isPublicPhoto || false, // Default to public for now, or get from body
         fileSize: body.fileSize,
         mimeType: body.mimeType,
       });

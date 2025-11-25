@@ -149,7 +149,8 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
         muscleGroup: payload.muscleGroup ? payload.muscleGroup.toUpperCase() : undefined,
         note: payload.note,
         isPublicNote: payload.sharedNote, // Assuming sharedNote means public note
-        photoUrl: photoUrl, 
+        photoUrl: photoUrl,
+        isPublicPhoto: payload.sharedPhoto, 
       } as any);
 
       // Update local state
@@ -340,6 +341,7 @@ const YourActivityPage = ({ user: whopUser, token }: { user: any, token: string 
                     id: activity.id,
                     title: `${activity.user.username || 'User'}: ${activity.muscleGroup || activity.type}`,
                     description: activity.note || '',
+                    isPublicNote: activity.isPublicNote,
                     thumbnail: activity.photo?.url || (
                       activity.type === 'WORKOUT' ? 'https://dummyimage.com/120x120/3DD9D9/0F1419.png&text=W' :
                       activity.type === 'REST' ? 'https://dummyimage.com/120x120/E57373/0F1419.png&text=R' :

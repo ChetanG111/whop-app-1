@@ -117,7 +117,8 @@ export const apiClient = {
       muscleGroup?: MuscleGroup;
       note?: string;
       isPublicNote?: boolean;
-      photoId?: string;
+      photoUrl?: string;
+      isPublicPhoto?: boolean;
     }
   ): Promise<{ checkin: CheckinData }> => {
     return fetchWithAuth('/api/checkin', token, {

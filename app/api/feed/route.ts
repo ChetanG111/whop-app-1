@@ -10,6 +10,7 @@ import { getPublicFeed } from '@/lib/db-helpers';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
@@ -34,34 +35,29 @@ export async function GET(req: NextRequest) {
     // Get public feed
     const checkins = await getPublicFeed(limit, offset);
 
-    return NextResponse.json(
-      {
-        success: true,
-        checkins: checkins.map((c) => ({
-          id: c.id,
-          type: c.type,
-          checkInDate: c.checkInDate,
-          muscleGroup: c.muscleGroup,
-          note: c.isPublicNote ? c.note : null,
-          photo: c.photo, // Already filtered by privacy in db-helpers
-          createdAt: c.createdAt,
-          user: {
-            whopUserId: c.user.whopUserId,
-            username: c.user.username,
-          },
-        })),
-        pagination: {
-          limit,
-          offset,
-          hasMore: checkins.length === limit,
+    return NextResponse.json({
+      success: true,
+      // Align property name with frontend expectation (apiClient expects `feed`)
+      feed: checkins.map((c) => ({
+        id: c.id,
+        type: c.type,
+        checkInDate: c.checkInDate,
+        muscleGroup: c.muscleGroup,
+        note: c.isPublicNote ? c.note : null,
+        photo: c.photo, // Already filtered by privacy in db-helpers
+        isPublicNote: c.isPublicNote,
+        createdAt: c.createdAt,
+        user: {
+          whopUserId: c.user.whopUserId,
+          username: c.user.username,
         },
+      })),
+      pagination: {
+        limit,
+        offset,
+        hasMore: checkins.length === limit,
       },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        },
-      }
-    );
+    });
   } catch (error: any) {
     console.error('GET /api/feed error:', error);
 

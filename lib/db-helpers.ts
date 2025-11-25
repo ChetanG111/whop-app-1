@@ -387,11 +387,15 @@ export async function getPublicFeed(limit = 20, offset = 0) {
       },
     });
 
+    console.log('Raw checkins from DB:', JSON.stringify(checkins, null, 2));
+
     // Filter out private photo URLs
     const sanitizedCheckins = checkins.map((checkin) => ({
       ...checkin,
       photo: checkin.photo?.isPublic ? checkin.photo : null,
     }));
+
+    console.log('Sanitized checkins:', JSON.stringify(sanitizedCheckins, null, 2));
 
     return sanitizedCheckins;
   } catch (error) {

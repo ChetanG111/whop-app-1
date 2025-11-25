@@ -12,6 +12,7 @@ interface Activity {
   description: string;
   user?: string;
   sharedNote?: boolean;
+  isPublicNote?: boolean;
   sharedPhoto?: boolean;
   timestamp: any;
 }
@@ -23,7 +24,7 @@ interface ActivityCardProps {
 }
 
 const ActivityCard = ({ activity, index, isPublicView = false }: ActivityCardProps) => {
-  const showDescription = activity.description && (!isPublicView || activity.sharedNote);
+  const showDescription = activity.description && (!isPublicView || activity.sharedNote || activity.isPublicNote);
   const showThumbnail = activity.thumbnail && (!isPublicView || activity.sharedPhoto);
 
   return (
