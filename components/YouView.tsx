@@ -44,16 +44,15 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
                 </div>
             </div>
 
-            {/* Heatmap Preview - Clickable to open full view */}
             <div className="mb-8 group">
                 <div
                     onClick={handleHeatmapClick}
-                    className={`w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-900 rounded-2xl p-5 shadow-sm ${cardHoverClasses} group`}
+                    className={`relative w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-900 rounded-2xl p-5 pb-8 shadow-sm ${cardHoverClasses} group`}
                 >
                     <Heatmap logs={activities} />
 
-                    {/* Expand Text Overlay matching Member Card */}
-                    <div className="mt-4 flex items-center justify-end text-indigo-500 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover:translate-x-0">
+                    {/* Expand Text Overlay - Absolutely positioned to avoid layout shift */}
+                    <div className="absolute bottom-3 right-5 flex items-center text-indigo-500 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
                         Expand <ChevronRight size={14} className="ml-1" />
                     </div>
                 </div>

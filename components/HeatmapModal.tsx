@@ -44,9 +44,10 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                     const viewportW = window.innerWidth;
                     const viewportH = window.innerHeight;
 
-                    const margin = 32;
-                    const targetW = Math.min(viewportW - margin, 1024);
-                    const targetH = Math.min(viewportH - 64, 800);
+                    const margin = 24;
+                    // Narrower width for stacked layout, auto height
+                    const targetW = Math.min(viewportW - margin * 2, 700);
+                    const targetH = Math.min(viewportH - margin * 2, 600);
                     const targetLeft = (viewportW - targetW) / 2;
                     const targetTop = (viewportH - targetH) / 2;
 
@@ -145,9 +146,9 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
             >
 
                 {/* Header */}
-                <div className={`flex items-center justify-between p-6 shrink-0 bg-white dark:bg-zinc-950 z-20 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+                <div className={`flex items-center justify-between px-5 py-4 shrink-0 bg-white dark:bg-zinc-950 z-20 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Yearly Overview</h2>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Yearly Overview</h2>
                         <p className="text-gray-500 dark:text-zinc-500 text-sm">Consistency Map</p>
                     </div>
                     <button
@@ -158,12 +159,12 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                     </button>
                 </div>
 
-                {/* Content Container */}
-                <div className={`flex flex-col lg:flex-row gap-0 overflow-hidden flex-1 min-h-0 transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+                {/* Content Container - Always stacked layout */}
+                <div className={`flex flex-col gap-0 overflow-hidden flex-1 min-h-0 transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
                     {/* Heatmap Section */}
-                    <div className="flex-1 p-6 overflow-hidden flex flex-col justify-center bg-gray-50 dark:bg-zinc-950/50 relative">
-                        <div className="w-full overflow-x-auto overflow-y-hidden no-scrollbar py-8 px-4 border border-gray-200 dark:border-zinc-900 rounded-2xl bg-white dark:bg-zinc-950 shadow-sm dark:shadow-inner">
+                    <div className="p-5 overflow-hidden flex flex-col justify-center bg-gray-50 dark:bg-zinc-950/50 relative flex-1">
+                        <div className="w-full overflow-x-auto overflow-y-hidden no-scrollbar py-6 px-4 border border-gray-200 dark:border-zinc-900 rounded-xl bg-white dark:bg-zinc-950 shadow-sm dark:shadow-inner">
                             <Heatmap
                                 logs={logs}
                                 onDayClick={(date, level) => {
@@ -174,51 +175,49 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                         </div>
                     </div>
 
-                    {/* Info Panel */}
-                    <div className="w-full lg:w-80 shrink-0 border-t lg:border-t-0 border-gray-200 dark:border-zinc-900 bg-white dark:bg-zinc-900/20 p-6 overflow-y-auto">
+                    {/* Info Panel - Below heatmap */}
+                    <div className="w-full shrink-0 border-t border-gray-200 dark:border-zinc-900 bg-white dark:bg-zinc-900/20 p-5 overflow-hidden">
                         {selectedDate ? (
-                            <div key={selectedDate.toString()} className="flex flex-col h-full animate-slide-up">
-                                <div className="mb-8 mt-2">
-                                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                                        {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </h3>
-                                    <p className="text-gray-500 dark:text-zinc-500 text-lg">
-                                        {selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
-                                    </p>
+                            <div key={selectedDate.toString()} className="flex flex-col animate-slide-up">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                            {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </h3>
+                                        <p className="text-gray-500 dark:text-zinc-500 text-sm">
+                                            {selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
+                                        </p>
+                                    </div>
+                                    {details?.type !== 'No Activity' && (
+                                        <span className="text-xs font-medium text-gray-400 dark:text-zinc-600">Click for details</span>
+                                    )}
                                 </div>
 
                                 {/* Interactive Card */}
                                 <div
                                     onClick={handleCardClick}
-                                    className={`p-6 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm transition-all duration-200 ${details?.type !== 'No Activity'
-                                            ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 hover:scale-[1.02] active:scale-[0.98] hover:shadow-md border-transparent dark:hover:border-zinc-700'
-                                            : ''
+                                    className={`p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm transition-all duration-200 ${details?.type !== 'No Activity'
+                                        ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 hover:scale-[1.01] active:scale-[0.99] hover:shadow-md border-transparent dark:hover:border-zinc-700'
+                                        : ''
                                         }`}
                                 >
-                                    <div className="flex flex-col items-start gap-4">
+                                    <div className="flex items-center gap-3">
                                         <div className="flex-1">
-                                            {/* Only show Type if activity exists */}
                                             {details?.type !== 'No Activity' && (
-                                                <p className={`text-xl font-bold uppercase mb-2 tracking-tight ${getTextColor(details?.type)}`}>
+                                                <p className={`text-lg font-bold uppercase mb-1 tracking-tight ${getTextColor(details?.type)}`}>
                                                     {details?.type}
                                                 </p>
                                             )}
-                                            <p className="text-base text-gray-600 dark:text-zinc-400 leading-relaxed font-medium">
+                                            <p className="text-sm text-gray-600 dark:text-zinc-400 leading-relaxed font-medium">
                                                 {details?.note}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-
-                                {details?.type !== 'No Activity' && (
-                                    <div className="mt-4 text-center">
-                                        <span className="text-xs font-medium text-gray-400 dark:text-zinc-600">Click card for full details</span>
-                                    </div>
-                                )}
                             </div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-600 text-center p-4">
-                                <Activity size={32} className="mb-4 opacity-30" />
+                            <div className="flex items-center justify-center text-gray-400 dark:text-zinc-600 text-center py-6">
+                                <Activity size={20} className="mr-3 opacity-40" />
                                 <p className="text-sm font-medium">Select a day to view details</p>
                             </div>
                         )}

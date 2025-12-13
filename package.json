@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@whop/react": "^0.3.0",
+    "@whop/sdk": "^0.0.19",
     "lucide-react": "^0.561.0",
     "next": "^15.1.0",
     "react": "^19.2.3",

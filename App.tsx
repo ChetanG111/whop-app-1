@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, User, Repeat, LayoutList } from 'lucide-react';
+import { Plus, User, LayoutList } from 'lucide-react';
 import { ViewState, LogType, UserProfile, WorkoutType } from './types';
 import { LogModal } from './components/LogModal';
 import { ProfileModal } from './components/ProfileModal';
@@ -10,11 +10,23 @@ import { FeedView } from './components/FeedView';
 import { YouView } from './components/YouView';
 import { getDaysAgo } from './utils/date';
 
+// Props interface for Whop integration
+interface AppProps {
+  userId?: string;
+  username?: string;
+  isCoachMode?: boolean;
+  experienceId?: string;
+}
 
-
-const App: React.FC = () => {
+const App: React.FC<AppProps> = ({
+  userId,
+  username = 'User',
+  isCoachMode: initialCoachMode = false,
+  experienceId
+}) => {
   const [activeView, setActiveView] = useState<ViewState>(ViewState.FEED);
-  const [isCoachMode, setIsCoachMode] = useState(false);
+  // isCoachMode is now controlled by the prop from server (Whop access level or DEV_IS_ADMIN)
+  const isCoachMode = initialCoachMode;
 
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -35,9 +47,9 @@ const App: React.FC = () => {
   const logButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Lifted state for User Profile
+  // Lifted state for User Profile - initialize with Whop username if available
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'Sarah Doe',
+    name: username,
     bio: 'Consistency is key 🔑',
     avatar: 'https://picsum.photos/200/200'
   });
@@ -177,16 +189,7 @@ const App: React.FC = () => {
   return (
     <div className="h-screen w-full bg-gray-50 dark:bg-black text-gray-900 dark:text-white relative flex flex-col overflow-hidden font-sans transition-colors duration-500">
 
-      {/* Coach/Member Toggle Switch (Fixed - Remains visible) */}
-      <button
-        onClick={() => setIsCoachMode(!isCoachMode)}
-        className="fixed bottom-6 right-6 z-[60] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white px-4 py-2.5 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 font-medium text-sm flex items-center gap-2"
-      >
-        <Repeat size={16} className="text-indigo-500" />
-        {isCoachMode ? 'Switch to Member' : 'Switch to Coach'}
-      </button>
-
-      {/* Conditional Rendering without 3D Animation */}
+      {/* Conditional Rendering based on Coach/Member mode */}
       {isCoachMode ? (
         <CoachDashboard
           items={feedItems}

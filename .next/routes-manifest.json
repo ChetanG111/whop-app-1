@@ -18,13 +18,28 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/experiences/[experienceId]",
+      "regex": "^/experiences/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPexperienceId": "nxtPexperienceId"
+      },
+      "namedRegex": "^/experiences/(?<nxtPexperienceId>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
       "regex": "^/(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
     }
   ],
   "dataRoutes": [],
