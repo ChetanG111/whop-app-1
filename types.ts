@@ -13,6 +13,7 @@ export enum WorkoutType {
   PUSH = 'Push',
   PULL = 'Pull',
   LEGS = 'Legs',
+  UPPER = 'Upper',
   FULL_BODY = 'Full Body',
   CARDIO = 'Cardio',
   CUSTOM = 'Custom'

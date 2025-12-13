@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, User, Repeat, LayoutList } from 'lucide-react';
-import { ViewState, LogType, UserProfile } from './types';
+import { ViewState, LogType, UserProfile, WorkoutType } from './types';
 import { LogModal } from './components/LogModal';
 import { ProfileModal } from './components/ProfileModal';
 import { HeatmapModal } from './components/HeatmapModal';
@@ -54,21 +54,21 @@ const App: React.FC = () => {
   // State for Feed Items
   const [feedItems, setFeedItems] = useState([
     // Changed first item to today (0 days ago) so the new indicator shows 1
-    { id: 1, username: 'chetan07', type: LogType.WORKOUT, workoutType: 'LEGS', note: 'bitcoin', photoUrl: null, timestamp: getDaysAgo(0), isPublicNote: true, isPublicPhoto: false },
-    { id: 2, username: 'chetan07', type: LogType.WORKOUT, workoutType: 'PUSH', note: 'restarted after a long time', photoUrl: null, timestamp: getDaysAgo(2), isPublicNote: true, isPublicPhoto: false },
+    { id: 1, username: 'chetan07', type: LogType.WORKOUT, workoutType: WorkoutType.LEGS, note: 'bitcoin', photoUrl: null, timestamp: getDaysAgo(0), isPublicNote: true, isPublicPhoto: false },
+    { id: 2, username: 'chetan07', type: LogType.WORKOUT, workoutType: WorkoutType.PUSH, note: 'restarted after a long time', photoUrl: null, timestamp: getDaysAgo(2), isPublicNote: true, isPublicPhoto: false },
     { id: 3, username: 'chetan07', type: LogType.REST, note: 'coool coool', photoUrl: null, timestamp: getDaysAgo(3), isPublicNote: true, isPublicPhoto: false },
-    { id: 4, username: 'sarah_d', type: LogType.WORKOUT, workoutType: 'PULL', note: 'Back and biceps on fire!', photoUrl: 'https://picsum.photos/200/200?random=1', timestamp: getDaysAgo(4), isPublicNote: true, isPublicPhoto: true },
+    { id: 4, username: 'sarah_d', type: LogType.WORKOUT, workoutType: WorkoutType.PULL, note: 'Back and biceps on fire!', photoUrl: 'https://picsum.photos/200/200?random=1', timestamp: getDaysAgo(4), isPublicNote: true, isPublicPhoto: true },
     { id: 5, username: 'mike_fit', type: LogType.REFLECT, note: 'Thinking about my goals for next month.', photoUrl: null, timestamp: getDaysAgo(5), isPublicNote: true, isPublicPhoto: false },
   ]);
 
   // State for User Activities (Mock Data with Timestamps)
   const [myActivities, setMyActivities] = useState([
-    { id: 101, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: 'UPPER', note: 'Great pump today! Bench press PB.', photoUrl: 'https://picsum.photos/200/200?random=10', timestamp: getDaysAgo(1), isPublicNote: true, isPublicPhoto: true },
+    { id: 101, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: WorkoutType.UPPER, note: 'Great pump today! Bench press PB.', photoUrl: 'https://picsum.photos/200/200?random=10', timestamp: getDaysAgo(1), isPublicNote: true, isPublicPhoto: true },
     { id: 102, username: 'Sarah Doe', type: LogType.REST, note: 'Active recovery day. Went for a hike.', photoUrl: null, timestamp: getDaysAgo(2), isPublicNote: false, isPublicPhoto: false },
-    { id: 103, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: 'LEGS', note: 'Leg day... walking is going to be hard tomorrow.', photoUrl: null, timestamp: getDaysAgo(3), isPublicNote: true, isPublicPhoto: false },
+    { id: 103, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: WorkoutType.LEGS, note: 'Leg day... walking is going to be hard tomorrow.', photoUrl: null, timestamp: getDaysAgo(3), isPublicNote: true, isPublicPhoto: false },
     { id: 104, username: 'Sarah Doe', type: LogType.REFLECT, note: 'Feeling stronger this week compared to last.', photoUrl: null, timestamp: getDaysAgo(6), isPublicNote: false, isPublicPhoto: false },
-    { id: 105, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: 'CARDIO', note: 'Morning Run.', photoUrl: null, timestamp: getDaysAgo(9), isPublicNote: false, isPublicPhoto: false },
-    { id: 106, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: 'PULL', note: 'Back day.', photoUrl: null, timestamp: getDaysAgo(10), isPublicNote: false, isPublicPhoto: false },
+    { id: 105, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: WorkoutType.CARDIO, note: 'Morning Run.', photoUrl: null, timestamp: getDaysAgo(9), isPublicNote: false, isPublicPhoto: false },
+    { id: 106, username: 'Sarah Doe', type: LogType.WORKOUT, workoutType: WorkoutType.PULL, note: 'Back day.', photoUrl: null, timestamp: getDaysAgo(10), isPublicNote: false, isPublicPhoto: false },
     { id: 107, username: 'Sarah Doe', type: LogType.REST, note: 'Rest.', photoUrl: null, timestamp: getDaysAgo(13), isPublicNote: false, isPublicPhoto: false },
     { id: 108, username: 'Sarah Doe', type: LogType.REFLECT, note: 'Weekly check-in.', photoUrl: null, timestamp: getDaysAgo(16), isPublicNote: false, isPublicPhoto: false },
   ]);
