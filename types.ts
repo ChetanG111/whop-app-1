@@ -27,6 +27,7 @@ export interface LogEntry {
   isPublicNote: boolean;
   photoUrl?: string;
   isPublicPhoto: boolean;
+  username: string;
   timestamp: Date;
 }
 

@@ -35,7 +35,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ items, onActivityClick }) =>
                 {items.map((item) => (
                     <ActivityCard
                         key={item.id}
-                        username={item.username as string} // Assuming username is string
+                        username={item.username ?? 'Anonymous'} // Fallback if username missing
                         type={item.type}
                         workoutType={item.workoutType}
                         // Conditionally render note and image based on public flags
