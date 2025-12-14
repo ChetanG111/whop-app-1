@@ -31,7 +31,7 @@ interface UseAppDataReturn {
         restReason?: string;
         note: string;
         isPublicNote: boolean;
-        photo?: string;
+        photoFile?: File;
         isPublicPhoto: boolean;
     }) => Promise<boolean>;
     updateCheckin: (id: string, updates: { isPublicNote?: boolean; isPublicPhoto?: boolean }) => Promise<boolean>;
@@ -129,17 +129,31 @@ export function useAppData({
     }, [refreshFeed, refreshMyActivities]);
 
     // Update profile
-    const handleUpdateProfile = async (updates: Partial<UserProfile>) => {
+    const handleUpdateProfile = async (updates: Partial<UserProfile> & { avatarFile?: File }) => {
         const apiUpdates: { displayName?: string; bio?: string; avatarUrl?: string } = {};
         if (updates.name !== undefined) apiUpdates.displayName = updates.name;
         if (updates.bio !== undefined) apiUpdates.bio = updates.bio;
-        if (updates.avatar !== undefined) apiUpdates.avatarUrl = updates.avatar;
+
+        // Handle avatar file upload if provided
+        if (updates.avatarFile) {
+            const uploadResult = await api.uploadAvatar(userContext, updates.avatarFile);
+            if (uploadResult.data?.path) {
+                apiUpdates.avatarUrl = uploadResult.data.path;
+            } else {
+                setError(`Avatar upload failed: ${uploadResult.error}`);
+                return;
+            }
+        } else if (updates.avatar !== undefined) {
+            apiUpdates.avatarUrl = updates.avatar;
+        }
 
         const result = await api.updateProfile(userContext, apiUpdates);
         if (result.data?.profile) {
             setProfile(prev => ({
                 ...prev,
-                ...updates,
+                name: updates.name ?? prev.name,
+                bio: updates.bio ?? prev.bio,
+                avatar: apiUpdates.avatarUrl ?? prev.avatar,
             }));
         }
     };
@@ -152,13 +166,31 @@ export function useAppData({
         restReason?: string;
         note: string;
         isPublicNote: boolean;
-        photo?: string;
+        photoFile?: File;
         isPublicPhoto: boolean;
     }): Promise<boolean> => {
         setIsSubmitting(true);
         setError(null);
 
         try {
+            let photoUrl: string | undefined;
+
+            // Upload photo if provided
+            if (data.photoFile) {
+                const uploadResult = await api.uploadCheckinImage(
+                    userContext,
+                    data.photoFile,
+                    api.logTypeToCheckinType(data.type)
+                );
+
+                if (uploadResult.error) {
+                    setError(`Photo upload failed: ${uploadResult.error}`);
+                    return false;
+                }
+
+                photoUrl = uploadResult.data?.path;
+            }
+
             const result = await api.createCheckin(userContext, {
                 type: api.logTypeToCheckinType(data.type),
                 workoutType: data.workoutType ? api.workoutTypeToDbFormat(data.workoutType) : undefined,
@@ -166,7 +198,7 @@ export function useAppData({
                 restReason: data.restReason,
                 note: data.note,
                 isNotePublic: data.isPublicNote,
-                photoUrl: data.photo,
+                photoUrl: photoUrl,
                 isPhotoPublic: data.isPublicPhoto,
             });
 
@@ -192,6 +224,7 @@ export function useAppData({
             setIsSubmitting(false);
         }
     };
+
 
     // Update checkin
     const handleUpdateCheckin = async (

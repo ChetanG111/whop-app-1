@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, Calendar, Clock, Globe, Lock, ImageOff } from 'lucide-react';
+import { X, Trash2, Calendar, Clock, Globe, Lock, ImageOff, Loader2 } from 'lucide-react';
 import { ToggleSwitch, ConfirmDialog, InfoDialog } from './ui';
+import { useSignedUrl } from '../hooks';
 
 interface ActivityModalProps {
     isOpen: boolean;
@@ -12,6 +13,50 @@ interface ActivityModalProps {
     currentUsername: string;
     isCoachMode?: boolean;
 }
+
+// Sub-component to handle signed URL fetching for images
+const ImageSection: React.FC<{ imageUrl?: string }> = ({ imageUrl }) => {
+    const signedUrl = useSignedUrl(imageUrl);
+    const [isImgLoaded, setIsImgLoaded] = useState(false);
+
+    // Reset loading state when URL changes
+    useEffect(() => {
+        setIsImgLoaded(false);
+    }, [signedUrl]);
+
+    if (!imageUrl) {
+        return (
+            <div className="w-full p-6 pb-0">
+                <div className="w-full h-48 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center text-gray-400 dark:text-zinc-600 gap-3 bg-gray-50 dark:bg-zinc-900/50">
+                    <ImageOff size={32} className="opacity-50" />
+                    <span className="text-sm font-medium">No image uploaded</span>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-full p-6 pb-0">
+            <div className="w-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800 relative min-h-[200px]">
+                {/* Skeleton loader - shows while fetching signed URL or loading image */}
+                {!isImgLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-full h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800 animate-pulse" />
+                    </div>
+                )}
+                {/* Actual image - hidden until loaded */}
+                {signedUrl && (
+                    <img
+                        src={signedUrl}
+                        alt="Activity"
+                        className={`w-full h-auto max-h-[500px] object-contain mx-auto transition-opacity duration-300 ${isImgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        onLoad={() => setIsImgLoaded(true)}
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
 
 export const ActivityModal: React.FC<ActivityModalProps> = ({
     isOpen,
@@ -31,6 +76,10 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteError, setShowDeleteError] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Toggle Loading States
+    const [isUpdatingNote, setIsUpdatingNote] = useState(false);
+    const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
 
     // Modal Animation Effect
     useEffect(() => {
@@ -144,12 +193,16 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         setTimeout(() => onDelete(activity.id), 1500);
     };
 
-    const togglePublicNote = () => {
-        onUpdate({ ...activity, isPublicNote: !activity.isPublicNote });
+    const togglePublicNote = async () => {
+        setIsUpdatingNote(true);
+        await onUpdate({ ...activity, isPublicNote: !activity.isPublicNote });
+        setIsUpdatingNote(false);
     };
 
-    const togglePublicPhoto = () => {
-        onUpdate({ ...activity, isPublicPhoto: !activity.isPublicPhoto });
+    const togglePublicPhoto = async () => {
+        setIsUpdatingPhoto(true);
+        await onUpdate({ ...activity, isPublicPhoto: !activity.isPublicPhoto });
+        setIsUpdatingPhoto(false);
     };
 
     return (
@@ -199,26 +252,11 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 
                 {/* Content */}
                 <div
-                    className={`flex-1 overflow-y-auto p-0 transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'
+                    className={`flex-1 overflow-y-auto no-scrollbar p-0 transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'
                         }`}
                 >
                     {/* Image Section */}
-                    <div className="w-full p-6 pb-0">
-                        {activity.imageUrl ? (
-                            <div className="w-full rounded-2xl overflow-hidden bg-gray-50 dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
-                                <img
-                                    src={activity.imageUrl}
-                                    alt="Activity"
-                                    className="w-full h-auto max-h-[500px] object-contain mx-auto"
-                                />
-                            </div>
-                        ) : (
-                            <div className="w-full h-48 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center text-gray-400 dark:text-zinc-600 gap-3 bg-gray-50 dark:bg-zinc-900/50">
-                                <ImageOff size={32} className="opacity-50" />
-                                <span className="text-sm font-medium">No image uploaded</span>
-                            </div>
-                        )}
-                    </div>
+                    <ImageSection imageUrl={activity.imageUrl} />
 
                     <div className="p-6 space-y-6">
                         {/* Note */}
@@ -247,27 +285,39 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             }`}
                     >
                         {/* Left Side: Toggles Group */}
-                        <div className="flex flex-col gap-2 flex-1">
+                        <div className="flex flex-col gap-3 flex-1">
                             {isOwner && !isCoachMode ? (
                                 <>
-                                    <ToggleSwitch
-                                        checked={activity.isPublicNote}
-                                        onChange={togglePublicNote}
-                                        label="Public Note"
-                                        icon={<Lock size={16} className="text-gray-400" />}
-                                        activeIcon={<Globe size={16} className="text-blue-500" />}
-                                        size="sm"
-                                    />
-
-                                    {activity.imageUrl && (
+                                    <div className="flex items-center gap-2">
                                         <ToggleSwitch
-                                            checked={activity.isPublicPhoto}
-                                            onChange={togglePublicPhoto}
-                                            label="Public Photo"
+                                            checked={activity.isPublicNote}
+                                            onChange={togglePublicNote}
+                                            label="Public Note"
                                             icon={<Lock size={16} className="text-gray-400" />}
                                             activeIcon={<Globe size={16} className="text-blue-500" />}
                                             size="sm"
+                                            disabled={isUpdatingNote}
                                         />
+                                        {isUpdatingNote && (
+                                            <Loader2 size={16} className="animate-spin text-indigo-500" />
+                                        )}
+                                    </div>
+
+                                    {activity.imageUrl && (
+                                        <div className="flex items-center gap-2">
+                                            <ToggleSwitch
+                                                checked={activity.isPublicPhoto}
+                                                onChange={togglePublicPhoto}
+                                                label="Public Photo"
+                                                icon={<Lock size={16} className="text-gray-400" />}
+                                                activeIcon={<Globe size={16} className="text-blue-500" />}
+                                                size="sm"
+                                                disabled={isUpdatingPhoto}
+                                            />
+                                            {isUpdatingPhoto && (
+                                                <Loader2 size={16} className="animate-spin text-indigo-500" />
+                                            )}
+                                        </div>
                                     )}
                                 </>
                             ) : (
@@ -276,6 +326,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                 </span>
                             )}
                         </div>
+
 
                         {/* Right Side: Delete Button */}
                         <button

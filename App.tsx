@@ -8,6 +8,7 @@ import { ActivityModal } from './components/ActivityModal';
 import { CoachDashboard } from './components/CoachDashboard';
 import { FeedView } from './components/FeedView';
 import { YouView } from './components/YouView';
+import { ErrorToast } from './components/ui';
 
 import { LogEntry } from './types';
 
@@ -64,6 +65,16 @@ const App: React.FC<AppProps> = ({
 
   // Theme State
   const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Error display state - syncs with error prop and can be dismissed
+  const [displayError, setDisplayError] = useState<string | null>(null);
+
+  // Sync displayError with error prop from parent
+  useEffect(() => {
+    if (error) {
+      setDisplayError(error);
+    }
+  }, [error]);
 
   // Track trigger element positions for morph animations
   const [logTriggerRect, setLogTriggerRect] = useState<DOMRect | null>(null);
@@ -125,7 +136,7 @@ const App: React.FC<AppProps> = ({
         reflectReason: data.reason,
         note: data.note,
         isPublicNote: data.isPublicNote,
-        photo: data.photo,
+        photoFile: data.photoFile, // Pass the File object for upload
         isPublicPhoto: data.isPublicPhoto,
       });
       if (success) {
@@ -196,6 +207,13 @@ const App: React.FC<AppProps> = ({
 
   return (
     <div className="h-screen w-full bg-gray-50 dark:bg-black text-gray-900 dark:text-white relative flex flex-col overflow-hidden font-sans transition-colors duration-500">
+
+      {/* Error Toast - displays user-facing errors at the top */}
+      <ErrorToast
+        message={displayError}
+        onDismiss={() => setDisplayError(null)}
+        duration={6000}
+      />
 
       {/* Conditional Rendering based on Coach/Member mode */}
       {isCoachMode ? (

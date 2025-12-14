@@ -196,8 +196,97 @@ export async function getPublicFeed(
 }
 
 // ============================================================================
+// Storage API
+// ============================================================================
+
+/**
+ * Upload a checkin photo to storage
+ * @returns The storage path (to be saved in DB as photoUrl)
+ */
+export async function uploadCheckinImage(
+    ctx: UserContext,
+    file: File,
+    checkinType: string
+): Promise<ApiResponse<{ path: string }>> {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('whopId', ctx.whopId);
+        formData.append('whopExperienceId', ctx.whopExperienceId);
+        formData.append('checkinType', checkinType);
+
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return { data: null, error: data.error || 'Upload failed' };
+        }
+
+        return { data, error: null };
+    } catch (error) {
+        console.error('Upload failed:', error);
+        return { data: null, error: 'Network error during upload' };
+    }
+}
+
+/**
+ * Get a signed URL for viewing a private photo
+ * @param path The storage path (from photo_url column)
+ */
+export async function getSignedImageUrl(path: string): Promise<ApiResponse<{ url: string }>> {
+    const params = new URLSearchParams({ path });
+    return apiRequest(`/api/signed-url?${params}`);
+}
+
+/**
+ * Upload an avatar to storage
+ * @returns The storage path (to be saved in DB as avatarUrl)
+ */
+export async function uploadAvatar(
+    ctx: UserContext,
+    file: File
+): Promise<ApiResponse<{ path: string }>> {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('whopId', ctx.whopId);
+        formData.append('whopExperienceId', ctx.whopExperienceId);
+
+        const response = await fetch('/api/avatar', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return { data: null, error: data.error || 'Avatar upload failed' };
+        }
+
+        return { data, error: null };
+    } catch (error) {
+        console.error('Avatar upload failed:', error);
+        return { data: null, error: 'Network error during avatar upload' };
+    }
+}
+
+/**
+ * Get a signed URL for viewing an avatar
+ * @param path The storage path (from avatar_url column)
+ */
+export async function getAvatarSignedUrl(path: string): Promise<ApiResponse<{ url: string }>> {
+    const params = new URLSearchParams({ path, bucket: 'avatars' });
+    return apiRequest(`/api/signed-url?${params}`);
+}
+
+// ============================================================================
 // Conversion helpers (DB format <-> Frontend format)
 // ============================================================================
+
 
 /**
  * Convert a database checkin to frontend LogEntry format

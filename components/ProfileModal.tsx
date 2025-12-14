@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { X, Settings, ChevronRight, User, ChevronLeft, Moon, Camera, Sun, Trash2 } from 'lucide-react';
+import { X, Settings, ChevronRight, User, ChevronLeft, Moon, Camera, Sun, Trash2, Loader2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { ToggleSwitch, ConfirmDialog } from './ui';
+import { useAvatarSignedUrl } from '../hooks';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -52,6 +53,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     const [tempName, setTempName] = useState(profile.name);
     const [tempBio, setTempBio] = useState(profile.bio);
     const [tempAvatar, setTempAvatar] = useState(profile.avatar);
+    const [tempAvatarPreview, setTempAvatarPreview] = useState<string | null>(null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Get signed URL for current avatar
+    const avatarUrl = useAvatarSignedUrl(profile.avatar);
 
     // Delete Confirmation State
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -143,26 +150,36 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             setTempName(profile.name);
             setTempBio(profile.bio);
             setTempAvatar(profile.avatar);
+            setTempAvatarPreview(null);
+            setAvatarFile(null);
         }
     }, [view, profile]);
 
     // Handlers
-    const handleSaveProfile = () => {
-        onUpdateProfile({
-            ...profile,
-            name: tempName,
-            bio: tempBio,
-            avatar: tempAvatar,
-        });
-        setView('MAIN');
+    const handleSaveProfile = async () => {
+        setIsSaving(true);
+        try {
+            // Pass the avatar file along with profile data for parent to handle upload
+            await onUpdateProfile({
+                ...profile,
+                name: tempName,
+                bio: tempBio,
+                avatar: tempAvatar, // This will be updated by parent after upload
+                avatarFile: avatarFile, // New field for the file to upload
+            } as any);
+            setView('MAIN');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setAvatarFile(file); // Store file for later upload
             const reader = new FileReader();
             reader.onloadend = () => {
-                setTempAvatar(reader.result as string);
+                setTempAvatarPreview(reader.result as string); // Preview only
             };
             reader.readAsDataURL(file);
         }
@@ -215,8 +232,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
                             <div className="p-6 pt-4 flex flex-col items-center flex-1 overflow-y-auto no-scrollbar">
                                 <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 overflow-hidden mb-4 shadow-xl">
-                                    {profile.avatar ? (
-                                        <img src={profile.avatar} alt="Me" className="w-full h-full object-cover" />
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="Me" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                                             <User size={40} />
@@ -253,9 +270,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                 {view === 'EDIT_PROFILE' && (
                                     <button
                                         onClick={handleSaveProfile}
-                                        className="px-6 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black font-bold text-sm hover:opacity-90 hover:scale-105 active:scale-95 shadow-md transition-all duration-200"
+                                        disabled={isSaving}
+                                        className="px-6 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black font-bold text-sm hover:opacity-90 hover:scale-105 active:scale-95 shadow-md transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
                                     >
-                                        Save
+                                        {isSaving && <Loader2 size={16} className="animate-spin" />}
+                                        {isSaving ? 'Saving...' : 'Save'}
                                     </button>
                                 )}
                             </div>
@@ -273,9 +292,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                                 onChange={handleAvatarUpload}
                                             />
                                             <div className="w-28 h-28 rounded-full bg-gray-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 overflow-hidden shadow-xl">
-                                                {tempAvatar ? (
+                                                {(tempAvatarPreview || avatarUrl) ? (
                                                     <img
-                                                        src={tempAvatar}
+                                                        src={tempAvatarPreview || avatarUrl || ''}
                                                         alt="Me"
                                                         className="w-full h-full object-cover opacity-100 group-hover:opacity-60 transition-opacity"
                                                     />

@@ -66,7 +66,7 @@ export default async function ExperiencePage({
     return (
         <>
             {isDevMode && (
-                <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black text-center py-1 text-sm font-medium">
+                <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black dark:text-white text-center py-1 text-sm font-medium">
                     🚧 Development Mode - Using mock user: {username} {isAdmin ? "(Admin)" : "(Member)"}
                 </div>
             )}

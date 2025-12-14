@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         const existingCheckin = await getTodayCheckin(user.id);
         if (existingCheckin) {
             return NextResponse.json(
-                { error: 'Already checked in today', checkin: existingCheckin },
+                { error: 'You already checked in today! Come back tomorrow 💪', checkin: existingCheckin },
                 { status: 409 }
             );
         }
