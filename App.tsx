@@ -9,19 +9,49 @@ import { CoachDashboard } from './components/CoachDashboard';
 import { FeedView } from './components/FeedView';
 import { YouView } from './components/YouView';
 
+import { LogEntry } from './types';
+
 // Props interface for Whop integration
 interface AppProps {
   userId?: string;
   username?: string;
   isCoachMode?: boolean;
   experienceId?: string;
+  // Data from useAppData hook
+  feedItems?: LogEntry[];
+  myActivities?: LogEntry[];
+  userProfile?: { name: string; bio: string; avatar: string };
+  streak?: { current: number; longest: number } | null;
+  // Handlers
+  onCreateCheckin?: (data: any) => Promise<boolean>;
+  onUpdateCheckin?: (id: string, updates: any) => Promise<boolean>;
+  onDeleteCheckin?: (id: string) => Promise<boolean>;
+  onUpdateProfile?: (updates: any) => Promise<void>;
+  // Loading states
+  isLoading?: boolean;
+  isSubmitting?: boolean;
+  error?: string | null;
 }
 
 const App: React.FC<AppProps> = ({
   userId,
   username = 'User',
   isCoachMode: initialCoachMode = false,
-  experienceId
+  experienceId,
+  // Data from parent
+  feedItems: propFeedItems = [],
+  myActivities: propMyActivities = [],
+  userProfile: propUserProfile,
+  streak,
+  // Handlers from parent
+  onCreateCheckin,
+  onUpdateCheckin,
+  onDeleteCheckin,
+  onUpdateProfile,
+  // Loading states
+  isLoading = false,
+  isSubmitting = false,
+  error,
 }) => {
   const [activeView, setActiveView] = useState<ViewState>(ViewState.FEED);
   // isCoachMode is controlled by the prop from server (Whop access level or DEV_IS_ADMIN)
@@ -46,12 +76,23 @@ const App: React.FC<AppProps> = ({
   const logButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Lifted state for User Profile - will be loaded from database
-  const [userProfile, setUserProfile] = useState<UserProfile>({
+  // Use profile from props or fallback to default
+  const [userProfile, setUserProfile] = useState<{ name: string; bio: string; avatar: string }>({
     name: username,
     bio: '',
     avatar: ''
   });
+
+  // Sync profile from props
+  useEffect(() => {
+    if (propUserProfile) {
+      setUserProfile(propUserProfile);
+    }
+  }, [propUserProfile]);
+
+  // Use data from props
+  const feedItems = propFeedItems;
+  const myActivities = propMyActivities;
 
   // Apply dark mode class to html element
   useEffect(() => {
@@ -61,12 +102,6 @@ const App: React.FC<AppProps> = ({
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
-
-  // State for Feed Items - will be loaded from database
-  const [feedItems, setFeedItems] = useState<any[]>([]);
-
-  // State for User Activities - will be loaded from database
-  const [myActivities, setMyActivities] = useState<any[]>([]);
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -81,65 +116,42 @@ const App: React.FC<AppProps> = ({
     };
   }, [isLogModalOpen, isProfileModalOpen, isHeatmapModalOpen, isActivityModalOpen]);
 
-  const handleLog = (data: any) => {
-    const newActivity = {
-      id: Date.now(),
-      username: userProfile.name,
-      type: data.type,
-      workoutType: data.workoutType,
-      reason: data.reason,
-      note: data.note,
-      photoUrl: data.photo,
-      timestamp: new Date(), // Current timestamp
-      isPublicNote: data.isPublicNote,
-      isPublicPhoto: data.isPublicPhoto
-    };
-
-    // Always add to 'You' page
-    setMyActivities(prev => [newActivity, ...prev]);
-
-    // Add to 'Feed' page only if public note or public photo is toggled
-    if (data.isPublicNote || data.isPublicPhoto) {
-      setFeedItems(prev => [newActivity, ...prev]);
+  const handleLog = async (data: any) => {
+    if (onCreateCheckin) {
+      // Use API handler
+      const success = await onCreateCheckin({
+        type: data.type,
+        workoutType: data.workoutType,
+        reflectReason: data.reason,
+        note: data.note,
+        isPublicNote: data.isPublicNote,
+        photo: data.photo,
+        isPublicPhoto: data.isPublicPhoto,
+      });
+      if (success) {
+        setIsLogModalOpen(false);
+      }
+    } else {
+      // Fallback for when no handler provided (shouldn't happen)
+      setIsLogModalOpen(false);
     }
   };
 
-  const handleUpdateActivity = (updatedActivity: any) => {
-    // 1. Update Personal List
-    setMyActivities(prev => prev.map(item => item.id === updatedActivity.id ? updatedActivity : item));
-
-    // 2. Handle Feed Logic
-    const isPublic = updatedActivity.isPublicNote || updatedActivity.isPublicPhoto;
-
-    setFeedItems(prev => {
-      const exists = prev.some(item => item.id === updatedActivity.id);
-
-      if (isPublic) {
-        if (exists) {
-          // Update existing
-          return prev.map(item => item.id === updatedActivity.id ? updatedActivity : item);
-        } else {
-          // Add new (and sort by timestamp descending)
-          const newFeed = [updatedActivity, ...prev];
-          return newFeed.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        }
-      } else {
-        // Remove if it exists but is no longer public
-        return prev.filter(item => item.id !== updatedActivity.id);
-      }
-    });
-
-    // Also update the selected activity to reflect changes in the modal immediately
+  const handleUpdateActivity = async (updatedActivity: any) => {
+    if (onUpdateCheckin) {
+      await onUpdateCheckin(updatedActivity.id.toString(), {
+        isPublicNote: updatedActivity.isPublicNote,
+        isPublicPhoto: updatedActivity.isPublicPhoto,
+      });
+    }
+    // Update selected activity to reflect changes in modal immediately
     setSelectedActivity(updatedActivity);
   };
 
-  const handleDeleteActivity = (id: number) => {
-    // Remove from My Activities
-    setMyActivities(prev => prev.filter(item => item.id !== id));
-
-    // Remove from Feed
-    setFeedItems(prev => prev.filter(item => item.id !== id));
-
+  const handleDeleteActivity = async (id: number) => {
+    if (onDeleteCheckin) {
+      await onDeleteCheckin(id.toString());
+    }
     setIsActivityModalOpen(false);
   };
 
@@ -151,7 +163,7 @@ const App: React.FC<AppProps> = ({
   };
 
   const openProfileModal = (fromHeader = false) => {
-    const ref = profileButtonRef; // Always use bottom bar ref as fallback
+    const ref = profileButtonRef;
     if (ref.current) {
       setProfileTriggerRect(ref.current.getBoundingClientRect());
     }
@@ -167,6 +179,17 @@ const App: React.FC<AppProps> = ({
     setSelectedActivity(activity);
     setActivityTriggerRect(rect);
     setIsActivityModalOpen(true);
+  };
+
+  const toggleTheme = () => {
+    setIsDarkMode(prev => !prev);
+  };
+
+  const handleProfileUpdate = async (profile: { name: string; bio: string; avatar: string }) => {
+    setUserProfile(profile);
+    if (onUpdateProfile) {
+      await onUpdateProfile(profile);
+    }
   };
 
   return (
@@ -269,10 +292,10 @@ const App: React.FC<AppProps> = ({
             isOpen={isProfileModalOpen}
             onClose={() => setIsProfileModalOpen(false)}
             profile={userProfile}
-            onUpdateProfile={setUserProfile}
+            onUpdateProfile={handleProfileUpdate}
             triggerRect={profileTriggerRect}
             isDarkMode={isDarkMode}
-            toggleTheme={() => setIsDarkMode(!isDarkMode)}
+            toggleTheme={toggleTheme}
           />
 
           <HeatmapModal
