@@ -132,21 +132,25 @@ export interface Database {
                 Row: User;
                 Insert: UserInsert;
                 Update: Partial<UserInsert>;
+                Relationships: [];
             };
             user_profiles: {
                 Row: UserProfile;
                 Insert: UserProfileInsert;
                 Update: UserProfileUpdate;
+                Relationships: [];
             };
             checkins: {
                 Row: Checkin;
                 Insert: CheckinInsert;
                 Update: CheckinUpdate;
+                Relationships: [];
             };
             user_streaks: {
                 Row: UserStreak;
                 Insert: never; // Managed by trigger
                 Update: never; // Managed by trigger
+                Relationships: [];
             };
         };
         Functions: {
