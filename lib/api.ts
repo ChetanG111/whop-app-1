@@ -203,7 +203,7 @@ export async function getPublicFeed(
  * Convert a database checkin to frontend LogEntry format
  */
 export function checkinToLogEntry(checkin: Checkin | CheckinWithProfile, username?: string): {
-    id: number;
+    id: string;
     type: string;
     workoutType?: string;
     reason?: string;
@@ -215,12 +215,12 @@ export function checkinToLogEntry(checkin: Checkin | CheckinWithProfile, usernam
     timestamp: Date;
     imageUrl?: string;
 } {
-    const displayName = 'user_profiles' in checkin
-        ? (checkin.user_profiles?.display_name || username || 'User')
+    const displayName = 'users' in checkin && checkin.users?.user_profiles
+        ? (checkin.users.user_profiles.display_name || username || 'User')
         : (username || 'User');
 
     return {
-        id: parseInt(checkin.id.split('-')[0], 16), // Convert UUID to numeric ID
+        id: checkin.id, // Use string UUID directly
         type: checkin.type.charAt(0).toUpperCase() + checkin.type.slice(1), // 'workout' -> 'Workout'
         workoutType: checkin.workout_type
             ? checkin.workout_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

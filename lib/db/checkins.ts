@@ -137,9 +137,11 @@ export async function getPublicFeed(
         .from('checkins')
         .select(`
       *,
-      user_profiles!inner (
-        display_name,
-        avatar_url
+      users (
+        user_profiles (
+          display_name,
+          avatar_url
+        )
       )
     `)
         .in('user_id', userIds)

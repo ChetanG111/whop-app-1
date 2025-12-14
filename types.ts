@@ -20,7 +20,7 @@ export enum WorkoutType {
 }
 
 export interface LogEntry {
-  id: number;
+  id: string | number;
   type: LogType;
   workoutType?: WorkoutType;
   reason?: string;

@@ -181,9 +181,11 @@ export interface Database {
  * Checkin with joined user profile for feed display
  */
 export interface CheckinWithProfile extends Checkin {
-    user_profiles: {
-        display_name: string | null;
-        avatar_url: string | null;
+    users: {
+        user_profiles: {
+            display_name: string | null;
+            avatar_url: string | null;
+        } | null;
     } | null;
 }
 

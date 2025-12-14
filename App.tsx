@@ -138,17 +138,19 @@ const App: React.FC<AppProps> = ({
   };
 
   const handleUpdateActivity = async (updatedActivity: any) => {
+    // 1. Optimistic Update: Update UI immediately
+    setSelectedActivity(updatedActivity);
+
+    // 2. API Call: Sync to server
     if (onUpdateCheckin) {
       await onUpdateCheckin(updatedActivity.id.toString(), {
         isPublicNote: updatedActivity.isPublicNote,
         isPublicPhoto: updatedActivity.isPublicPhoto,
       });
     }
-    // Update selected activity to reflect changes in modal immediately
-    setSelectedActivity(updatedActivity);
   };
 
-  const handleDeleteActivity = async (id: number) => {
+  const handleDeleteActivity = async (id: string | number) => {
     if (onDeleteCheckin) {
       await onDeleteCheckin(id.toString());
     }
