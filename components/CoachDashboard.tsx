@@ -65,20 +65,20 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                 <div className="flex items-start justify-between px-1">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                            <LayoutDashboard className="text-indigo-600 dark:text-indigo-400" size={32} />
+                            <LayoutDashboard className="text-brand-600 dark:text-brand-400" size={32} />
                             Coach Dashboard
                         </h1>
                         <p className="text-gray-500 dark:text-zinc-400 mt-2 text-lg">
                             Monitor community activity.
                         </p>
                     </div>
-                    <div className="bg-indigo-50 dark:bg-indigo-900/20 px-4 py-2 rounded-full border border-indigo-100 dark:border-indigo-900/50 flex items-center gap-2 transition-all duration-300">
+                    <div className="bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-full border border-brand-100 dark:border-brand-900/50 flex items-center gap-2 transition-all duration-300">
                         {activeView === 'FEED' ? (
-                            <LayoutList size={16} className="text-indigo-600 dark:text-indigo-400" />
+                            <LayoutList size={16} className="text-brand-600 dark:text-brand-400" />
                         ) : (
-                            <Users size={16} className="text-indigo-600 dark:text-indigo-400" />
+                            <Users size={16} className="text-brand-600 dark:text-brand-400" />
                         )}
-                        <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300 min-w-[90px] text-right">
+                        <span className="text-sm font-bold text-brand-700 dark:text-brand-300 min-w-[90px] text-right">
                             {activeView === 'FEED' ? `${items.length} Updates` : `${members.length} Members`}
                         </span>
                     </div>
@@ -125,10 +125,10 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                                     <div
                                         key={member.username}
                                         onClick={(e) => handleMemberClick(member, e)}
-                                        className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:border-indigo-500 dark:hover:border-indigo-500 hover:-translate-y-1 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
+                                        className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:border-brand-500 dark:hover:border-brand-500 hover:-translate-y-1 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
                                     >
                                         <div className="flex items-center gap-4 mb-4">
-                                            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-400 font-bold text-lg group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-400 font-bold text-lg group-hover:bg-brand-50 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                                                 {member.username.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
@@ -154,7 +154,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 flex items-center justify-end text-indigo-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
+                                        <div className="mt-4 flex items-center justify-end text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
                                             View Profile <ChevronRight size={16} />
                                         </div>
                                     </div>
@@ -171,7 +171,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                     <div className="relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[2rem] p-1.5 flex items-center backdrop-blur-sm bg-white/90 dark:bg-zinc-900/90 active:scale-95 transition-transform duration-200">
                         {/* Sliding Background */}
                         <div
-                            className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-indigo-50 dark:bg-indigo-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
+                            className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-brand-50 dark:bg-brand-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
                             style={{
                                 width: 'calc(50% - 6px)',
                                 left: activeView === 'FEED' ? '6px' : 'calc(50% + 0px)'
@@ -180,7 +180,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
 
                         <button
                             onClick={() => setActiveView('FEED')}
-                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === 'FEED' ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === 'FEED' ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                         >
                             <LayoutList size={18} />
@@ -188,7 +188,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                         </button>
                         <button
                             onClick={() => setActiveView('MEMBERS')}
-                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === 'MEMBERS' ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === 'MEMBERS' ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                         >
                             <Users size={18} />

@@ -253,7 +253,7 @@ const App: React.FC<AppProps> = ({
             <button
               ref={profileButtonRef}
               onClick={() => openProfileModal(false)}
-              className={`w-12 h-12 rounded-[2rem] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 pointer-events-auto shadow-xl hover:bg-gray-50 dark:hover:bg-zinc-800 active:scale-90 transition-all duration-300 overflow-hidden ${isProfileModalOpen ? 'opacity-0' : 'opacity-100'}`}
+              className={`w-12 h-12 rounded-[2rem] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-brand-600 dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-gray-50 dark:hover:bg-zinc-800 active:scale-90 transition-all duration-300 overflow-hidden ${isProfileModalOpen ? 'opacity-0' : 'opacity-100'}`}
             >
               <User size={24} />
             </button>
@@ -263,7 +263,7 @@ const App: React.FC<AppProps> = ({
               <div className="relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[2rem] p-1.5 flex items-center shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-zinc-900/90 active:scale-95 transition-transform duration-200">
                 {/* Sliding Background - Indigo Tint */}
                 <div
-                  className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-indigo-50 dark:bg-indigo-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
+                  className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-brand-50 dark:bg-brand-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
                   style={{
                     width: 'calc(50% - 6px)',
                     left: activeView === ViewState.FEED ? '6px' : 'calc(50% + 0px)'
@@ -272,7 +272,7 @@ const App: React.FC<AppProps> = ({
 
                 <button
                   onClick={() => setActiveView(ViewState.FEED)}
-                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === ViewState.FEED ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === ViewState.FEED ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
                   <LayoutList size={18} />
@@ -280,7 +280,7 @@ const App: React.FC<AppProps> = ({
                 </button>
                 <button
                   onClick={() => setActiveView(ViewState.YOU)}
-                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === ViewState.YOU ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === ViewState.YOU ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
                   <User size={18} />
@@ -293,7 +293,7 @@ const App: React.FC<AppProps> = ({
             <button
               ref={logButtonRef}
               onClick={openLogModal}
-              className={`w-12 h-12 rounded-[2rem] bg-black dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-white dark:text-indigo-400 pointer-events-auto shadow-xl hover:bg-zinc-800 active:scale-90 transition-all duration-300 ${isLogModalOpen ? 'opacity-0' : 'opacity-100'}`}
+              className={`w-12 h-12 rounded-[2rem] bg-black dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-white dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-zinc-800 active:scale-90 transition-all duration-300 ${isLogModalOpen ? 'opacity-0' : 'opacity-100'}`}
             >
               <Plus size={26} />
             </button>

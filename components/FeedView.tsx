@@ -20,12 +20,13 @@ export const FeedView: React.FC<FeedViewProps> = ({ items, onActivityClick }) =>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Community Feed</h1>
 
                 {/* Today's Updates Indicator */}
-                <div className="bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 flex items-center gap-2">
+                {/* Today's Updates Indicator */}
+                <div className="bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-full border border-brand-100 dark:border-brand-900/50 flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
                     </span>
-                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                    <span className="text-xs font-bold text-brand-700 dark:text-brand-300">
                         {todaysUpdates} New Today
                     </span>
                 </div>

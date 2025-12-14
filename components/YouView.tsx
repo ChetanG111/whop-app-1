@@ -20,7 +20,7 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
 
     const { current, max } = useMemo(() => calculateStreaks(activities), [activities]);
 
-    const cardHoverClasses = "hover:shadow-xl hover:-translate-y-1 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-gray-50/50 dark:hover:bg-zinc-900/50 active:scale-[0.98] transition-all duration-300 cursor-pointer";
+    const cardHoverClasses = "hover:shadow-xl hover:-translate-y-1 hover:border-brand-500 dark:hover:border-brand-500 hover:bg-gray-50/50 dark:hover:bg-zinc-900/50 active:scale-[0.98] transition-all duration-300 cursor-pointer";
 
     return (
         <div className="w-full max-w-2xl mx-auto p-4 pb-32">
@@ -52,7 +52,7 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
                     <Heatmap logs={activities} />
 
                     {/* Expand Text Overlay - Absolutely positioned to avoid layout shift */}
-                    <div className="absolute bottom-3 right-5 flex items-center text-indigo-500 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                    <div className="absolute bottom-3 right-5 flex items-center text-brand-500 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
                         Expand <ChevronRight size={14} className="ml-1" />
                     </div>
                 </div>

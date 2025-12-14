@@ -121,7 +121,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                 {/* Header */}
                 <div className={`flex items-center justify-between p-6 shrink-0 bg-white dark:bg-zinc-950 z-20 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xl font-bold">
+                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xl font-bold">
                             {memberData.username.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -145,7 +145,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                         {/* Stats Row */}
                         <div className="grid grid-cols-3 gap-3">
                             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-sm">
-                                <Activity className="mb-2 text-indigo-500" size={20} />
+                                <Activity className="mb-2 text-brand-500" size={20} />
                                 <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.stats.total}</span>
                                 <span className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider font-bold mt-1">Total Logs</span>
                             </div>

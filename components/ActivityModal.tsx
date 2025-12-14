@@ -299,7 +299,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                             disabled={isUpdatingNote}
                                         />
                                         {isUpdatingNote && (
-                                            <Loader2 size={16} className="animate-spin text-indigo-500" />
+                                            <Loader2 size={16} className="animate-spin text-brand-500" />
                                         )}
                                     </div>
 
@@ -315,13 +315,13 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                                 disabled={isUpdatingPhoto}
                                             />
                                             {isUpdatingPhoto && (
-                                                <Loader2 size={16} className="animate-spin text-indigo-500" />
+                                                <Loader2 size={16} className="animate-spin text-brand-500" />
                                             )}
                                         </div>
                                     )}
                                 </>
                             ) : (
-                                <span className="text-xs font-bold text-indigo-500 uppercase tracking-wider">
+                                <span className="text-xs font-bold text-brand-500 uppercase tracking-wider">
                                     Coach Action
                                 </span>
                             )}
