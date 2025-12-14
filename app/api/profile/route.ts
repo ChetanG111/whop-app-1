@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
                 displayName: profile.display_name,
                 bio: profile.bio,
                 avatarUrl: profile.avatar_url,
-                themePreference: profile.theme_preference,
+                isDarkMode: profile.is_dark_mode,
             } : null,
             streak: streak ? {
                 current: streak.current_streak,
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
     try {
         const body = await request.json();
-        const { whopId, whopExperienceId, displayName, bio, avatarUrl, themePreference } = body;
+        const { whopId, whopExperienceId, displayName, bio, avatarUrl, isDarkMode } = body;
 
         if (!whopId || !whopExperienceId) {
             return NextResponse.json(
@@ -100,13 +100,13 @@ export async function PATCH(request: NextRequest) {
             display_name?: string | null;
             bio?: string | null;
             avatar_url?: string | null;
-            theme_preference?: 'light' | 'dark' | 'system';
+            is_dark_mode?: boolean;
         } = {};
 
         if (displayName !== undefined) updates.display_name = displayName;
         if (bio !== undefined) updates.bio = bio;
         if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
-        if (themePreference !== undefined) updates.theme_preference = themePreference;
+        if (isDarkMode !== undefined) updates.is_dark_mode = isDarkMode;
 
         // Update profile
         profile = await updateUserProfile(user.id, updates);
@@ -123,7 +123,7 @@ export async function PATCH(request: NextRequest) {
                 displayName: profile.display_name,
                 bio: profile.bio,
                 avatarUrl: profile.avatar_url,
-                themePreference: profile.theme_preference,
+                isDarkMode: profile.is_dark_mode,
             },
         });
     } catch (error) {

@@ -1,5 +1,5 @@
 import { createClient } from '../supabase/server';
-import type { User, UserProfile, UserProfileUpdate } from '../supabase/database.types';
+import type { User, UserProfile, UserProfileUpdate } from '../supabase/types';
 
 /**
  * Get or create a user based on Whop ID and Experience ID
@@ -17,7 +17,8 @@ export async function getOrCreateUser(
 } | null> {
     const supabase = await createClient();
 
-    const { data, error } = await supabase.rpc('get_or_create_user', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase.rpc('get_or_create_user' as any, {
         p_whop_id: whopId,
         p_whop_experience_id: whopExperienceId,
     });
@@ -94,12 +95,13 @@ export async function createUserProfile(
 ): Promise<UserProfile | null> {
     const supabase = await createClient();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await supabase
         .from('user_profiles')
         .insert({
             user_id: userId,
             display_name: displayName,
-        })
+        } as any)
         .select()
         .single();
 
@@ -120,9 +122,10 @@ export async function updateUserProfile(
 ): Promise<UserProfile | null> {
     const supabase = await createClient();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await supabase
         .from('user_profiles')
-        .update(updates)
+        .update(updates as any)
         .eq('user_id', userId)
         .select()
         .single();
@@ -141,9 +144,10 @@ export async function updateUserProfile(
 export async function promoteToAdmin(userId: string): Promise<boolean> {
     const supabase = await createClient();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await supabase
         .from('users')
-        .update({ role: 'admin' })
+        .update({ role: 'admin' } as any)
         .eq('id', userId);
 
     if (error) {

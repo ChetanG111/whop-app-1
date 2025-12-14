@@ -9,7 +9,7 @@ import type {
     ReflectReason,
     Checkin,
     CheckinWithProfile
-} from './supabase/database.types';
+} from './supabase/types';
 
 // ============================================================================
 // Types

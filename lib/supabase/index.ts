@@ -18,4 +18,4 @@ export type {
     UserProfileUpdate,
     CheckinWithProfile,
     UserWithProfile,
-} from './database.types';
+} from './types';

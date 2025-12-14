@@ -1,7 +1,9 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/feed/route": "app/api/feed/route.js",
-  "/api/checkins/route": "app/api/checkins/route.js",
   "/api/checkins/[id]/route": "app/api/checkins/[id]/route.js",
   "/api/profile/route": "app/api/profile/route.js",
+  "/api/checkins/route": "app/api/checkins/route.js",
+  "/page": "app/page.js",
   "/experiences/[experienceId]/page": "app/experiences/[experienceId]/page.js"
 }

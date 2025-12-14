@@ -1,5 +1,5 @@
 import { createClient } from '../supabase/server';
-import type { UserStreak } from '../supabase/database.types';
+import type { UserStreak } from '../supabase/types';
 
 /**
  * Get user's streak data
