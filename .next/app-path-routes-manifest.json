@@ -1,9 +1,0 @@
-{
-  "/_not-found/page": "/_not-found",
-  "/api/feed/route": "/api/feed",
-  "/api/checkins/[id]/route": "/api/checkins/[id]",
-  "/api/profile/route": "/api/profile",
-  "/api/checkins/route": "/api/checkins",
-  "/page": "/",
-  "/experiences/[experienceId]/page": "/experiences/[experienceId]"
-}
