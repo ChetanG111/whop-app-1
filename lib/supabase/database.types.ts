@@ -174,6 +174,15 @@ export interface Database {
                 Returns: void;
             };
         };
+        Views: {
+            [_ in never]: never;
+        };
+        Enums: {
+            [_ in never]: never;
+        };
+        CompositeTypes: {
+            [_ in never]: never;
+        };
     };
 }
 
