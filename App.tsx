@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, User, LayoutList, LayoutDashboard } from 'lucide-react';
+import { Plus, User, LayoutList } from 'lucide-react';
 import { ViewState, LogType, UserProfile, WorkoutType } from './types';
 import { LogModal } from './components/LogModal';
 import { ProfileModal } from './components/ProfileModal';
@@ -24,11 +24,8 @@ const App: React.FC<AppProps> = ({
   experienceId
 }) => {
   const [activeView, setActiveView] = useState<ViewState>(ViewState.FEED);
-  // isCoachMode is now controlled by the prop from server (Whop access level or DEV_IS_ADMIN)
+  // isCoachMode is controlled by the prop from server (Whop access level or DEV_IS_ADMIN)
   const isCoachMode = initialCoachMode;
-
-  // State to track whether coach wants to view as coach or member
-  const [viewAsCoach, setViewAsCoach] = useState(true);
 
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -175,28 +172,8 @@ const App: React.FC<AppProps> = ({
   return (
     <div className="h-screen w-full bg-gray-50 dark:bg-black text-gray-900 dark:text-white relative flex flex-col overflow-hidden font-sans transition-colors duration-500">
 
-      {/* Coach View Toggle Button - Only visible for coaches */}
-      {isCoachMode && (
-        <button
-          onClick={() => setViewAsCoach(!viewAsCoach)}
-          className="fixed top-6 right-6 z-50 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl px-4 py-2.5 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 flex items-center gap-2 group"
-        >
-          {viewAsCoach ? (
-            <>
-              <User size={18} className="text-indigo-600 dark:text-indigo-400" />
-              <span className="text-sm font-bold text-gray-900 dark:text-white">View as Member</span>
-            </>
-          ) : (
-            <>
-              <LayoutDashboard size={18} className="text-indigo-600 dark:text-indigo-400" />
-              <span className="text-sm font-bold text-gray-900 dark:text-white">View as Coach</span>
-            </>
-          )}
-        </button>
-      )}
-
       {/* Conditional Rendering based on Coach/Member mode */}
-      {isCoachMode && viewAsCoach ? (
+      {isCoachMode ? (
         <CoachDashboard
           items={feedItems}
           onActivityClick={openActivityModal}
