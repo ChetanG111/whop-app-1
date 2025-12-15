@@ -83,6 +83,10 @@ export function useAppData({
     useEffect(() => {
         async function fetchProfile() {
             const result = await api.getProfile(userContext);
+            if (result.error) {
+                setError('Unable to load your profile. Please refresh the page.');
+                return;
+            }
             if (result.data) {
                 if (result.data.profile) {
                     setProfile({
@@ -105,6 +109,10 @@ export function useAppData({
     // Fetch feed
     const refreshFeed = useCallback(async () => {
         const result = await api.getPublicFeed(experienceId);
+        if (result.error) {
+            setError('Unable to load the feed. Pull down to refresh.');
+            return;
+        }
         if (result.data?.feed) {
             const entries = result.data.feed.map(checkin => api.checkinToLogEntry(checkin));
             setFeedItems(entries as LogEntry[]);
@@ -114,6 +122,10 @@ export function useAppData({
     // Fetch my activities
     const refreshMyActivities = useCallback(async () => {
         const result = await api.getMyCheckins(userContext);
+        if (result.error) {
+            setError('Unable to load your activities. Please try again.');
+            return;
+        }
         if (result.data?.checkins) {
             const entries = result.data.checkins.map(checkin =>
                 api.checkinToLogEntry(checkin, profile.name)
@@ -126,6 +138,10 @@ export function useAppData({
     const refreshMembers = useCallback(async () => {
         if (!isCoachMode) return;
         const result = await api.getMembers(experienceId);
+        if (result.error) {
+            setError('Unable to load members. Please refresh the page.');
+            return;
+        }
         if (result.data?.members) {
             setMembers(result.data.members);
         }
@@ -165,6 +181,10 @@ export function useAppData({
         }
 
         const result = await api.updateProfile(userContext, apiUpdates);
+        if (result.error) {
+            setError('Unable to save your profile changes. Please try again.');
+            return;
+        }
         if (result.data?.profile) {
             setProfile(prev => ({
                 ...prev,

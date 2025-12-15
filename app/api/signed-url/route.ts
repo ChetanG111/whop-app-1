@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Error in GET /api/signed-url:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to load image. Please refresh the page.' },
             { status: 500 }
         );
     }

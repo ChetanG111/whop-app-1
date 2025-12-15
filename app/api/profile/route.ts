@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Error in GET /api/profile:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to load your profile. Please refresh the page.' },
             { status: 500 }
         );
     }
@@ -138,7 +138,7 @@ export async function PATCH(request: NextRequest) {
     } catch (error) {
         console.error('Error in PATCH /api/profile:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to save your profile changes. Please try again.' },
             { status: 500 }
         );
     }

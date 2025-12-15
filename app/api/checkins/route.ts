@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Error in POST /api/checkins:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to save your check-in. Please try again.' },
             { status: 500 }
         );
     }
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Error in GET /api/checkins:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to load your activities. Please refresh the page.' },
             { status: 500 }
         );
     }

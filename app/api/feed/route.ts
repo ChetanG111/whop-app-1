@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Error in GET /api/feed:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to load the feed. Please refresh the page.' },
             { status: 500 }
         );
     }

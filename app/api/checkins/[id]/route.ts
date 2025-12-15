@@ -53,7 +53,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     } catch (error) {
         console.error('Error in PATCH /api/checkins/[id]:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to update your activity. Please try again.' },
             { status: 500 }
         );
     }
@@ -104,7 +104,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     } catch (error) {
         console.error('Error in DELETE /api/checkins/[id]:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to delete this activity. Please try again.' },
             { status: 500 }
         );
     }

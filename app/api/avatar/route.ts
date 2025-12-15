@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Error in POST /api/avatar:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Unable to upload your avatar. Please try again.' },
             { status: 500 }
         );
     }
