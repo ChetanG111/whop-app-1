@@ -282,22 +282,30 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
                   <div className="flex flex-col space-y-2">
                     <label className="text-gray-500 dark:text-zinc-400 text-sm ml-1">Reason</label>
                     <div className="flex flex-wrap gap-2">
-                      {['Busy', 'Sick', 'Low Energy', 'Other'].map((r) => (
+                      {[
+                        { label: 'Sick', value: 'sick' },
+                        { label: 'Injury', value: 'injury' },
+                        { label: 'Travel', value: 'travel' },
+                        { label: 'Work', value: 'work' },
+                        { label: 'Family', value: 'family' },
+                        { label: 'Mental Health', value: 'mental_health' },
+                        { label: 'Other', value: 'other' },
+                      ].map((r) => (
                         <button
-                          key={r}
+                          key={r.value}
                           onClick={() => {
-                            setReflectReason(r);
+                            setReflectReason(r.value);
                             // If "Other" is selected, auto-focus the note input
-                            if (r === 'Other') {
+                            if (r.value === 'other') {
                               setTimeout(() => noteInputRef.current?.focus(), 50);
                             }
                           }}
-                          className={`px-4 py-2 rounded-full border text-sm font-medium transition-all active:scale-95 ${reflectReason === r
+                          className={`px-4 py-2 rounded-full border text-sm font-medium transition-all active:scale-95 ${reflectReason === r.value
                             ? 'bg-black dark:bg-white text-white dark:text-black border-transparent'
                             : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-zinc-700'
                             }`}
                         >
-                          {r}
+                          {r.label}
                         </button>
                       ))}
                     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Trash2, Calendar, Clock, Globe, Lock, ImageOff, Loader2 } from 'lucide-react';
 import { ToggleSwitch, ConfirmDialog, InfoDialog } from './ui';
 import { useSignedUrl } from '../hooks';
@@ -17,12 +17,46 @@ interface ActivityModalProps {
 // Sub-component to handle signed URL fetching for images
 const ImageSection: React.FC<{ imageUrl?: string }> = ({ imageUrl }) => {
     const signedUrl = useSignedUrl(imageUrl);
-    const [isImgLoaded, setIsImgLoaded] = useState(false);
 
-    // Reset loading state when URL changes
+    // Check if image is already in browser cache by testing with a new Image object
+    const isImageCached = (url: string): boolean => {
+        if (typeof window === 'undefined') return false;
+        const img = new Image();
+        img.src = url;
+        return img.complete && img.naturalHeight > 0;
+    };
+
+    // Initialize isImgLoaded based on whether the image is already cached
+    const [isImgLoaded, setIsImgLoaded] = useState(() => {
+        if (signedUrl) {
+            return isImageCached(signedUrl);
+        }
+        return false;
+    });
+
+    const prevUrlRef = useRef<string | null>(signedUrl);
+
+    // When URL changes, check if new image is cached
     useEffect(() => {
-        setIsImgLoaded(false);
+        if (signedUrl && signedUrl !== prevUrlRef.current) {
+            prevUrlRef.current = signedUrl;
+            // Check if the new URL's image is already cached
+            if (isImageCached(signedUrl)) {
+                setIsImgLoaded(true);
+            } else {
+                setIsImgLoaded(false);
+            }
+        } else if (!signedUrl) {
+            setIsImgLoaded(false);
+        }
     }, [signedUrl]);
+
+    // Callback ref to check image status when DOM element is created
+    const handleImgRef = (img: HTMLImageElement | null) => {
+        if (img && img.complete && img.naturalHeight > 0) {
+            setIsImgLoaded(true);
+        }
+    };
 
     if (!imageUrl) {
         return (
@@ -47,6 +81,7 @@ const ImageSection: React.FC<{ imageUrl?: string }> = ({ imageUrl }) => {
                 {/* Actual image - hidden until loaded */}
                 {signedUrl && (
                     <img
+                        ref={handleImgRef}
                         src={signedUrl}
                         alt="Activity"
                         className={`w-full h-auto max-h-[500px] object-contain mx-auto transition-opacity duration-300 ${isImgLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -57,6 +92,7 @@ const ImageSection: React.FC<{ imageUrl?: string }> = ({ imageUrl }) => {
         </div>
     );
 };
+
 
 export const ActivityModal: React.FC<ActivityModalProps> = ({
     isOpen,
