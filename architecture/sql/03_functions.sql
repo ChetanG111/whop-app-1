@@ -73,19 +73,14 @@ DECLARE
     v_last_date DATE := NULL;
     v_prev_date DATE := NULL;
     v_running_streak INTEGER := 0;
+    v_max_streak INTEGER := 0;
     v_today DATE := CURRENT_DATE;
+    v_is_active_streak BOOLEAN := FALSE;
     checkin_record RECORD;
 BEGIN
-    -- Get existing longest_streak to preserve it (only decrease if we must)
-    SELECT longest_streak INTO v_longest_streak
-    FROM user_streaks
-    WHERE user_id = p_user_id;
-    
-    IF v_longest_streak IS NULL THEN
-        v_longest_streak := 0;
-    END IF;
-    
-    -- Loop through all check-ins in descending date order
+    -- Loop through ALL check-ins in descending date order to find:
+    -- 1. Current active streak (from today/yesterday backwards)
+    -- 2. Longest streak ever (by scanning all consecutive sequences)
     FOR checkin_record IN
         SELECT DISTINCT checkin_date
         FROM checkins
@@ -95,15 +90,12 @@ BEGIN
         IF v_last_date IS NULL THEN
             -- First record (most recent)
             v_last_date := checkin_record.checkin_date;
+            v_prev_date := checkin_record.checkin_date;
+            v_running_streak := 1;
             
             -- Check if streak is still active (today or yesterday)
             IF checkin_record.checkin_date = v_today OR checkin_record.checkin_date = v_today - INTERVAL '1 day' THEN
-                v_running_streak := 1;
-                v_prev_date := checkin_record.checkin_date;
-            ELSE
-                -- Streak broken, no active streak
-                v_running_streak := 0;
-                EXIT; -- No need to continue
+                v_is_active_streak := TRUE;
             END IF;
         ELSE
             -- Check if consecutive with previous
@@ -111,25 +103,41 @@ BEGIN
                 v_running_streak := v_running_streak + 1;
                 v_prev_date := checkin_record.checkin_date;
             ELSE
-                -- Gap found, streak ends here
-                EXIT;
+                -- Gap found, this streak ends
+                -- Save current streak if it's the longest so far
+                IF v_running_streak > v_max_streak THEN
+                    v_max_streak := v_running_streak;
+                END IF;
+                -- If this was the active streak, save it
+                IF v_is_active_streak THEN
+                    v_current_streak := v_running_streak;
+                    v_is_active_streak := FALSE; -- No longer tracking active streak
+                END IF;
+                -- Start a new streak count from this record
+                v_running_streak := 1;
+                v_prev_date := checkin_record.checkin_date;
             END IF;
         END IF;
     END LOOP;
     
-    v_current_streak := v_running_streak;
-    
-    -- Update longest if current exceeds it
-    IF v_current_streak > v_longest_streak THEN
-        v_longest_streak := v_current_streak;
+    -- After loop, check the final running streak
+    IF v_running_streak > v_max_streak THEN
+        v_max_streak := v_running_streak;
     END IF;
     
-    -- UPSERT the streak data
+    -- If we were still tracking the active streak, set it
+    IF v_is_active_streak THEN
+        v_current_streak := v_running_streak;
+    END IF;
+    
+    v_longest_streak := v_max_streak;
+    
+    -- UPSERT the streak data (recalculated from scratch)
     INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_checkin_date, updated_at)
     VALUES (p_user_id, v_current_streak, v_longest_streak, v_last_date, now())
     ON CONFLICT (user_id) DO UPDATE SET
         current_streak = EXCLUDED.current_streak,
-        longest_streak = GREATEST(user_streaks.longest_streak, EXCLUDED.longest_streak),
+        longest_streak = EXCLUDED.longest_streak,
         last_checkin_date = EXCLUDED.last_checkin_date,
         updated_at = now();
 END;
