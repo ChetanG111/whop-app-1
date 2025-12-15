@@ -1,5 +1,6 @@
 import { createClient } from '../supabase/server';
 import type { User, UserProfile, UserProfileUpdate } from '../supabase/types';
+import { getAvatarSignedUrl } from '../storage';
 
 /**
  * Get or create a user based on Whop ID and Experience ID
@@ -232,8 +233,8 @@ export async function getAllMembersByExperience(
         });
     }
 
-    // Map to MemberData structure
-    return users.map(user => {
+    // Map to MemberData structure and resolve avatar URLs
+    const membersWithAvatars = await Promise.all(users.map(async user => {
         // Handle the nested profile data - can be array or object
         const profileData = Array.isArray(user.user_profiles)
             ? user.user_profiles[0]
@@ -242,11 +243,18 @@ export async function getAllMembersByExperience(
             ? user.user_streaks[0]
             : user.user_streaks;
 
+        // Convert avatar path to signed URL if it exists and is a storage path
+        let avatarUrl: string | null = profileData?.avatar_url || null;
+        if (avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://') && !avatarUrl.startsWith('data:')) {
+            const signedUrl = await getAvatarSignedUrl(avatarUrl);
+            avatarUrl = signedUrl;
+        }
+
         return {
             userId: user.id,
             username: user.whop_id, // Use whop_id as fallback username
             displayName: profileData?.display_name || null,
-            avatarUrl: profileData?.avatar_url || null,
+            avatarUrl,
             role: (user.role || 'member') as 'member' | 'admin',
             totalCheckins: countMap.get(user.id) || 0,
             currentStreak: streakData?.current_streak || 0,
@@ -254,8 +262,10 @@ export async function getAllMembersByExperience(
             lastCheckinDate: streakData?.last_checkin_date || null,
             createdAt: user.created_at,
         };
-    }).sort((a, b) => {
-        // Sort by last activity (most recent first), then by creation date
+    }));
+
+    // Sort by last activity (most recent first), then by creation date
+    return membersWithAvatars.sort((a, b) => {
         if (a.lastCheckinDate && b.lastCheckinDate) {
             return new Date(b.lastCheckinDate).getTime() - new Date(a.lastCheckinDate).getTime();
         }
