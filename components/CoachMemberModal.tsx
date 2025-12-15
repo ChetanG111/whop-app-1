@@ -2,21 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { X, Calendar, Trophy, Activity, Flame } from 'lucide-react';
 import { Heatmap } from './Heatmap';
 import { ActivityCard } from './ActivityCard';
-import { LogType } from '../types';
+import { LogEntry, LogType } from '../types';
+import type { MemberData } from '../lib/api';
 
 interface CoachMemberModalProps {
     isOpen: boolean;
     onClose: () => void;
     triggerRect: DOMRect | null;
-    memberData: {
-        username: string;
-        logs: any[];
-        stats: {
-            current: number;
-            max: number;
-            total: number;
-        }
-    } | null;
+    memberData: MemberData | null;
+    logs?: LogEntry[]; // Optional logs for this member
     onActivityClick: (activity: any, rect: DOMRect) => void;
 }
 
@@ -25,6 +19,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
     onClose,
     triggerRect,
     memberData,
+    logs = [],
     onActivityClick
 }) => {
     const [isRendered, setIsRendered] = useState(false);
@@ -121,11 +116,15 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                 {/* Header */}
                 <div className={`flex items-center justify-between p-6 shrink-0 bg-white dark:bg-zinc-950 z-20 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xl font-bold">
-                            {memberData.username.charAt(0).toUpperCase()}
+                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xl font-bold overflow-hidden">
+                            {memberData.avatarUrl ? (
+                                <img src={memberData.avatarUrl} alt={memberData.displayName || memberData.username} className="w-full h-full object-cover" />
+                            ) : (
+                                (memberData.displayName || memberData.username).charAt(0).toUpperCase()
+                            )}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{memberData.username}</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{memberData.displayName || memberData.username}</h2>
                             <p className="text-gray-500 dark:text-zinc-500 text-sm">Member Details</p>
                         </div>
                     </div>
@@ -146,17 +145,17 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                         <div className="grid grid-cols-3 gap-3">
                             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-sm">
                                 <Activity className="mb-2 text-brand-500" size={20} />
-                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.stats.total}</span>
+                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.totalCheckins}</span>
                                 <span className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider font-bold mt-1">Total Logs</span>
                             </div>
                             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-sm">
                                 <Flame className="mb-2 text-teal-500" size={20} />
-                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.stats.current}</span>
+                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.currentStreak}</span>
                                 <span className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider font-bold mt-1">Streak</span>
                             </div>
                             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-sm">
                                 <Trophy className="mb-2 text-orange-500" size={20} />
-                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.stats.max}</span>
+                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.longestStreak}</span>
                                 <span className="text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider font-bold mt-1">Max Streak</span>
                             </div>
                         </div>
@@ -167,7 +166,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                                 <Calendar size={16} />
                                 Consistency Map
                             </h3>
-                            <Heatmap logs={memberData.logs} />
+                            <Heatmap logs={logs} />
                         </div>
 
                         {/* Logs List */}
@@ -176,19 +175,19 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                                 Recent Public Activity
                             </h3>
                             <div className="flex flex-col space-y-3">
-                                {memberData.logs.length === 0 ? (
+                                {logs.length === 0 ? (
                                     <div className="text-center py-8 text-gray-400 dark:text-zinc-600 text-sm">
                                         No public logs available.
                                     </div>
                                 ) : (
-                                    memberData.logs.map((item) => (
+                                    logs.map((item) => (
                                         <ActivityCard
                                             key={item.id}
                                             username={item.username}
                                             type={item.type}
                                             workoutType={item.workoutType}
                                             note={item.isPublicNote ? item.note : undefined}
-                                            imageUrl={item.isPublicPhoto ? item.imageUrl : undefined}
+                                            imageUrl={item.isPublicPhoto ? item.photoUrl : undefined}
                                             onClick={(e) => onActivityClick(item, e.currentTarget.getBoundingClientRect())}
                                         />
                                     ))

@@ -33,6 +33,7 @@ export default function ClientApp({
             // Pass data from hook
             feedItems={appData.feedItems}
             myActivities={appData.myActivities}
+            members={appData.members}
             userProfile={appData.profile}
             streak={appData.streak}
             // Pass handlers

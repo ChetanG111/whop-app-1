@@ -198,6 +198,39 @@ export async function getPublicFeed(
 }
 
 // ============================================================================
+// Members API
+// ============================================================================
+
+/**
+ * Member data returned from the members API
+ */
+export interface MemberData {
+    userId: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    role: 'member' | 'admin';
+    totalCheckins: number;
+    currentStreak: number;
+    longestStreak: number;
+    lastCheckinDate: string | null;
+    createdAt: string | null;
+}
+
+/**
+ * Get all members for an experience (for coach dashboard)
+ */
+export async function getMembers(
+    experienceId: string
+): Promise<ApiResponse<{ members: MemberData[] }>> {
+    const params = new URLSearchParams({
+        experienceId,
+    });
+
+    return apiRequest(`/api/members?${params}`);
+}
+
+// ============================================================================
 // Storage API
 // ============================================================================
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import * as api from '../lib/api';
+import type { MemberData } from '../lib/api';
 import type { LogEntry, UserProfile } from '../types';
 
 interface UseAppDataProps {
@@ -19,6 +20,7 @@ interface UseAppDataReturn {
     // Data
     feedItems: LogEntry[];
     myActivities: LogEntry[];
+    members: MemberData[]; // All members for coach mode
 
     // Streak
     streak: { current: number; longest: number } | null;
@@ -45,6 +47,7 @@ interface UseAppDataReturn {
     // Refresh
     refreshFeed: () => Promise<void>;
     refreshMyActivities: () => Promise<void>;
+    refreshMembers: () => Promise<void>;
 }
 
 /**
@@ -70,6 +73,7 @@ export function useAppData({
     });
     const [feedItems, setFeedItems] = useState<LogEntry[]>([]);
     const [myActivities, setMyActivities] = useState<LogEntry[]>([]);
+    const [members, setMembers] = useState<MemberData[]>([]);
     const [streak, setStreak] = useState<{ current: number; longest: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,15 +122,28 @@ export function useAppData({
         }
     }, [userId, experienceId, profile.name]);
 
+    // Fetch members (for coach mode)
+    const refreshMembers = useCallback(async () => {
+        if (!isCoachMode) return;
+        const result = await api.getMembers(experienceId);
+        if (result.data?.members) {
+            setMembers(result.data.members);
+        }
+    }, [experienceId, isCoachMode]);
+
     // Initial data fetch
     useEffect(() => {
         async function loadInitialData() {
             setIsLoading(true);
-            await Promise.all([refreshFeed(), refreshMyActivities()]);
+            const fetchPromises = [refreshFeed(), refreshMyActivities()];
+            if (isCoachMode) {
+                fetchPromises.push(refreshMembers());
+            }
+            await Promise.all(fetchPromises);
             setIsLoading(false);
         }
         loadInitialData();
-    }, [refreshFeed, refreshMyActivities]);
+    }, [refreshFeed, refreshMyActivities, refreshMembers, isCoachMode]);
 
     // Update profile
     const handleUpdateProfile = async (updates: Partial<UserProfile> & { avatarFile?: File }) => {
@@ -260,6 +277,7 @@ export function useAppData({
         updateProfile: handleUpdateProfile,
         feedItems,
         myActivities,
+        members,
         streak,
         createCheckin: handleCreateCheckin,
         updateCheckin: handleUpdateCheckin,
@@ -269,5 +287,6 @@ export function useAppData({
         error,
         refreshFeed,
         refreshMyActivities,
+        refreshMembers,
     };
 }

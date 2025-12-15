@@ -1,57 +1,37 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { ActivityCard } from './ActivityCard';
 import { LayoutDashboard, Users, ChevronRight, LayoutList } from 'lucide-react';
 import { LogEntry } from '../types';
 import { CoachMemberModal } from './CoachMemberModal';
-import { calculateStreaks } from '../utils/analytics';
+import type { MemberData } from '../lib/api';
 
 interface CoachDashboardProps {
     items: LogEntry[];
+    members: MemberData[];
     onActivityClick: (activity: any, rect: DOMRect) => void;
 }
 
-export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivityClick }) => {
+export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, onActivityClick }) => {
     const [activeView, setActiveView] = useState<'FEED' | 'MEMBERS'>('FEED');
 
     // Member Modal State
-    const [selectedMember, setSelectedMember] = useState<any>(null);
+    const [selectedMember, setSelectedMember] = useState<MemberData | null>(null);
     const [memberTriggerRect, setMemberTriggerRect] = useState<DOMRect | null>(null);
     const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
 
-    // Group items by username to build member list
-    const members = useMemo(() => {
-        const memberMap = new Map();
-
-        items.forEach(item => {
-            if (!memberMap.has(item.username)) {
-                memberMap.set(item.username, {
-                    username: item.username,
-                    logs: [],
-                    lastActive: new Date(0)
-                });
-            }
-            const member = memberMap.get(item.username);
-            member.logs.push(item);
-            const itemDate = new Date(item.timestamp);
-            if (itemDate > member.lastActive) {
-                member.lastActive = itemDate;
-            }
+    // Get logs for a specific member (for the modal)
+    const getMemberLogs = (memberId: string): LogEntry[] => {
+        // Match by userIdor by username/displayName
+        return items.filter(item => {
+            const member = members.find(m => m.userId === memberId);
+            if (!member) return false;
+            // Check if username matches displayName or username
+            return item.username === member.displayName ||
+                item.username === member.username;
         });
+    };
 
-        return Array.from(memberMap.values()).map(m => {
-            const streaks = calculateStreaks(m.logs);
-            return {
-                ...m,
-                stats: {
-                    total: m.logs.length,
-                    current: streaks.current,
-                    max: streaks.max
-                }
-            };
-        }).sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime()); // Sort by most recent activity
-    }, [items]);
-
-    const handleMemberClick = (member: any, e: React.MouseEvent) => {
+    const handleMemberClick = (member: MemberData, e: React.MouseEvent) => {
         setMemberTriggerRect(e.currentTarget.getBoundingClientRect());
         setSelectedMember(member);
         setIsMemberModalOpen(true);
@@ -120,46 +100,65 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                     {/* View 2: Members */}
                     <div className="w-1/2 h-full overflow-y-auto no-scrollbar pb-32">
                         <div className="w-full max-w-3xl mx-auto p-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {members.map((member) => (
-                                    <div
-                                        key={member.username}
-                                        onClick={(e) => handleMemberClick(member, e)}
-                                        className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:border-brand-500 dark:hover:border-brand-500 hover:-translate-y-1 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
-                                    >
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-400 font-bold text-lg group-hover:bg-brand-50 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-                                                {member.username.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">{member.username}</h3>
-                                                <p className="text-xs text-gray-500 dark:text-zinc-500">
-                                                    Last active: {member.lastActive.toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
+                            {members.length === 0 ? (
+                                <div className="text-center py-20 text-gray-400 dark:text-zinc-600">
+                                    <Users size={48} className="mx-auto mb-4 opacity-50" />
+                                    <p>No members found yet.</p>
+                                    <p className="text-sm mt-2">Members will appear here once they join.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {members.map((member) => {
+                                        const displayName = member.displayName || member.username;
+                                        const lastActiveText = member.lastCheckinDate
+                                            ? `Last active: ${new Date(member.lastCheckinDate).toLocaleDateString()}`
+                                            : 'No activity yet';
 
-                                        <div className="grid grid-cols-3 gap-2 border-t border-gray-100 dark:border-zinc-800 pt-4">
-                                            <div className="text-center">
-                                                <span className="block text-lg font-bold text-gray-900 dark:text-white">{member.stats.total}</span>
-                                                <span className="text-[10px] text-gray-400 uppercase font-bold">Logs</span>
-                                            </div>
-                                            <div className="text-center border-l border-gray-100 dark:border-zinc-800">
-                                                <span className="block text-lg font-bold text-teal-600 dark:text-teal-400">{member.stats.current}</span>
-                                                <span className="text-[10px] text-gray-400 uppercase font-bold">Streak</span>
-                                            </div>
-                                            <div className="text-center border-l border-gray-100 dark:border-zinc-800">
-                                                <span className="block text-lg font-bold text-orange-500 dark:text-orange-400">{member.stats.max}</span>
-                                                <span className="text-[10px] text-gray-400 uppercase font-bold">Max</span>
-                                            </div>
-                                        </div>
+                                        return (
+                                            <div
+                                                key={member.userId}
+                                                onClick={(e) => handleMemberClick(member, e)}
+                                                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:border-brand-500 dark:hover:border-brand-500 hover:-translate-y-1 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
+                                            >
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-400 font-bold text-lg group-hover:bg-brand-50 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors overflow-hidden">
+                                                        {member.avatarUrl ? (
+                                                            <img src={member.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            displayName.charAt(0).toUpperCase()
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">{displayName}</h3>
+                                                        <p className="text-xs text-gray-500 dark:text-zinc-500">
+                                                            {lastActiveText}
+                                                        </p>
+                                                    </div>
+                                                </div>
 
-                                        <div className="mt-4 flex items-center justify-end text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
-                                            View Profile <ChevronRight size={16} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                                <div className="grid grid-cols-3 gap-2 border-t border-gray-100 dark:border-zinc-800 pt-4">
+                                                    <div className="text-center">
+                                                        <span className="block text-lg font-bold text-gray-900 dark:text-white">{member.totalCheckins}</span>
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Logs</span>
+                                                    </div>
+                                                    <div className="text-center border-l border-gray-100 dark:border-zinc-800">
+                                                        <span className="block text-lg font-bold text-teal-600 dark:text-teal-400">{member.currentStreak}</span>
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Streak</span>
+                                                    </div>
+                                                    <div className="text-center border-l border-gray-100 dark:border-zinc-800">
+                                                        <span className="block text-lg font-bold text-orange-500 dark:text-orange-400">{member.longestStreak}</span>
+                                                        <span className="text-[10px] text-gray-400 uppercase font-bold">Max</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-4 flex items-center justify-end text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
+                                                    View Profile <ChevronRight size={16} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -203,6 +202,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, onActivit
                 onClose={() => setIsMemberModalOpen(false)}
                 triggerRect={memberTriggerRect}
                 memberData={selectedMember}
+                logs={selectedMember ? getMemberLogs(selectedMember.userId) : []}
                 onActivityClick={onActivityClick}
             />
         </div>

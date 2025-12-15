@@ -11,6 +11,7 @@ import { YouView } from './components/YouView';
 import { ErrorToast } from './components/ui';
 
 import { LogEntry } from './types';
+import type { MemberData } from './lib/api';
 
 // Props interface for Whop integration
 interface AppProps {
@@ -21,6 +22,7 @@ interface AppProps {
   // Data from useAppData hook
   feedItems?: LogEntry[];
   myActivities?: LogEntry[];
+  members?: MemberData[];
   userProfile?: { name: string; bio: string; avatar: string };
   streak?: { current: number; longest: number } | null;
   // Handlers
@@ -42,6 +44,7 @@ const App: React.FC<AppProps> = ({
   // Data from parent
   feedItems: propFeedItems = [],
   myActivities: propMyActivities = [],
+  members: propMembers = [],
   userProfile: propUserProfile,
   streak,
   // Handlers from parent
@@ -219,6 +222,7 @@ const App: React.FC<AppProps> = ({
       {isCoachMode ? (
         <CoachDashboard
           items={feedItems}
+          members={propMembers}
           onActivityClick={openActivityModal}
         />
       ) : (
