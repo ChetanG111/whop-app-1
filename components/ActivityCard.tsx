@@ -1,7 +1,7 @@
 import React from 'react';
 import { LogType } from '../types';
 import { ChevronRight } from 'lucide-react';
-import { useSignedUrl } from '../hooks';
+import { useLazySignedUrl } from '../hooks';
 
 interface ActivityCardProps {
   username: string;
@@ -40,8 +40,8 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({
   let boxContent = null;
   let boxClasses = "w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden";
 
-  // Get signed URL for image if it's a storage path
-  const signedImageUrl = useSignedUrl(imageUrl);
+  // Get signed URL for image lazily - only fetches when card is near viewport
+  const { ref, url: signedImageUrl } = useLazySignedUrl(imageUrl);
 
   if (signedImageUrl) {
     boxContent = <img src={signedImageUrl} alt="activity" className="w-full h-full object-cover" />;
@@ -77,6 +77,7 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({
 
   return (
     <div
+      ref={ref}
       onClick={onClick}
       className={`w-full bg-white dark:bg-zinc-900 border-2 border-gray-200 dark:border-zinc-800 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all duration-300 shadow-sm group
         hover:shadow-xl hover:border-brand-500 dark:hover:border-brand-500 hover:-translate-y-1 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 

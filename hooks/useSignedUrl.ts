@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, RefObject } from 'react';
 import { getSignedImageUrl, getAvatarSignedUrl } from '../lib/api';
+import { useInView } from './useInView';
 
 // =============================================================================
 // Simple module-level cache for signed URLs
@@ -170,4 +171,152 @@ export function useAvatarSignedUrl(path: string | undefined | null): string | nu
     }, [path]);
 
     return url;
+}
+
+// =============================================================================
+// Lazy/Viewport-Aware Hooks
+// =============================================================================
+
+interface UseLazySignedUrlReturn {
+    /** Ref to attach to the container element */
+    ref: RefObject<HTMLDivElement | null>;
+    /** The signed URL (null until in view and fetched) */
+    url: string | null;
+    /** Whether the element has entered the viewport */
+    inView: boolean;
+}
+
+/**
+ * Hook to convert a storage path to a signed URL, but ONLY when the element
+ * is near the viewport. This reduces unnecessary API calls for off-screen content.
+ * 
+ * @param path - Storage path or full URL
+ * @param rootMargin - How far before viewport to trigger (default: "200px")
+ * @returns Object with ref (attach to container), url, and inView status
+ * 
+ * @example
+ * const { ref, url } = useLazySignedUrl(imageUrl);
+ * return (
+ *   <div ref={ref}>
+ *     {url && <img src={url} alt="..." />}
+ *   </div>
+ * );
+ */
+export function useLazySignedUrl(
+    path: string | undefined | null,
+    rootMargin: string = '200px'
+): UseLazySignedUrlReturn {
+    const { ref, inView } = useInView({ rootMargin, triggerOnce: true });
+    const [url, setUrl] = useState<string | null>(() => getInitialUrl(path));
+    const mountedRef = useRef(true);
+    const fetchedRef = useRef(false);
+
+    useEffect(() => {
+        mountedRef.current = true;
+
+        // Don't fetch if not in view yet (the key optimization!)
+        if (!inView) return;
+
+        // Already fetched or no path
+        if (fetchedRef.current || !path) return;
+
+        // Handle full URLs and data URLs directly
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+            setUrl(path);
+            if (!path.startsWith('data:')) {
+                preloadImage(path);
+            }
+            fetchedRef.current = true;
+            return;
+        }
+
+        // Check cache first
+        const cached = getCachedUrl(path);
+        if (cached) {
+            setUrl(cached);
+            preloadImage(cached);
+            fetchedRef.current = true;
+            return;
+        }
+
+        // Fetch signed URL
+        fetchedRef.current = true; // Mark as fetched to prevent duplicate calls
+        getSignedImageUrl(path)
+            .then(result => {
+                if (mountedRef.current && result.data?.url) {
+                    const signedUrl = result.data.url;
+                    setCachedUrl(path, signedUrl);
+                    preloadImage(signedUrl);
+                    setUrl(signedUrl);
+                }
+            })
+            .catch(err => {
+                console.warn('Failed to get signed URL:', err);
+                fetchedRef.current = false; // Allow retry on error
+            });
+
+        return () => {
+            mountedRef.current = false;
+        };
+    }, [path, inView]);
+
+    return { ref, url, inView };
+}
+
+/**
+ * Lazy version of useAvatarSignedUrl - only fetches when element is near viewport.
+ */
+export function useLazyAvatarSignedUrl(
+    path: string | undefined | null,
+    rootMargin: string = '200px'
+): UseLazySignedUrlReturn {
+    const { ref, inView } = useInView({ rootMargin, triggerOnce: true });
+    const [url, setUrl] = useState<string | null>(() => getInitialUrl(path));
+    const mountedRef = useRef(true);
+    const fetchedRef = useRef(false);
+
+    useEffect(() => {
+        mountedRef.current = true;
+
+        if (!inView) return;
+        if (fetchedRef.current || !path) return;
+
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+            setUrl(path);
+            if (!path.startsWith('data:')) {
+                preloadImage(path);
+            }
+            fetchedRef.current = true;
+            return;
+        }
+
+        const cached = getCachedUrl(path);
+        if (cached) {
+            setUrl(cached);
+            preloadImage(cached);
+            fetchedRef.current = true;
+            return;
+        }
+
+        fetchedRef.current = true;
+        getAvatarSignedUrl(path)
+            .then(result => {
+                if (mountedRef.current && result.data?.url) {
+                    const signedUrl = result.data.url;
+                    setCachedUrl(path, signedUrl);
+                    preloadImage(signedUrl);
+                    setUrl(signedUrl);
+                }
+            })
+            .catch(err => {
+                console.warn('Failed to get avatar signed URL:', err);
+                fetchedRef.current = false;
+            });
+
+        return () => {
+            mountedRef.current = false;
+        };
+    }, [path, inView]);
+
+    return { ref, url, inView };
 }
