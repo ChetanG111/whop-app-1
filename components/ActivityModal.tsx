@@ -9,7 +9,7 @@ interface ActivityModalProps {
     triggerRect: DOMRect | null;
     activity: any;
     onUpdate: (updatedActivity: any) => void;
-    onDelete: (id: number) => void;
+    onDelete: (id: string | number) => void;
     currentUsername: string;
     isCoachMode?: boolean;
 }

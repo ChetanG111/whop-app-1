@@ -167,11 +167,13 @@ export async function updateCheckin(
 
 export async function deleteCheckin(
     ctx: UserContext,
-    checkinId: string
+    checkinId: string,
+    isAdmin: boolean = false
 ): Promise<ApiResponse<{ success: boolean }>> {
     const params = new URLSearchParams({
         whopId: ctx.whopId,
         whopExperienceId: ctx.whopExperienceId,
+        isAdmin: isAdmin.toString(),
     });
 
     return apiRequest(`/api/checkins/${checkinId}?${params}`, {

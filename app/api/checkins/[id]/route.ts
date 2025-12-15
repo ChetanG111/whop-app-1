@@ -61,6 +61,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         const { searchParams } = new URL(request.url);
         const whopId = searchParams.get('whopId');
         const whopExperienceId = searchParams.get('whopExperienceId');
+        const isAdminParam = searchParams.get('isAdmin');
 
         if (!whopId || !whopExperienceId) {
             return NextResponse.json(
@@ -78,7 +79,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const isAdmin = user.role === 'admin';
+        // Check admin status from both database role and client-passed param
+        // The client passes isAdmin=true when the user has admin access in Whop
+        const isAdmin = user.role === 'admin' || isAdminParam === 'true';
         const deleted = await deleteCheckin(id, user.id, isAdmin);
 
         if (!deleted) {

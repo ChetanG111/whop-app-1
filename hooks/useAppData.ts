@@ -246,7 +246,7 @@ export function useAppData({
 
     // Delete checkin
     const handleDeleteCheckin = async (id: string): Promise<boolean> => {
-        const result = await api.deleteCheckin(userContext, id);
+        const result = await api.deleteCheckin(userContext, id, isCoachMode);
         if (result.error) {
             setError(result.error);
             return false;
