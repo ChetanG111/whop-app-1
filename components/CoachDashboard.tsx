@@ -4,14 +4,16 @@ import { LayoutDashboard, Users, ChevronRight, LayoutList } from 'lucide-react';
 import { LogEntry } from '../types';
 import { CoachMemberModal } from './CoachMemberModal';
 import type { MemberData } from '../lib/api';
+import { SkeletonFeed, SkeletonMembersGrid } from './ui';
 
 interface CoachDashboardProps {
     items: LogEntry[];
     members: MemberData[];
     onActivityClick: (activity: any, rect: DOMRect) => void;
+    isLoading?: boolean;
 }
 
-export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, onActivityClick }) => {
+export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, onActivityClick, isLoading = false }) => {
     const [activeView, setActiveView] = useState<'FEED' | 'MEMBERS'>('FEED');
 
     // Member Modal State
@@ -84,33 +86,39 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
                     {/* View 1: Feed */}
                     <div className="w-1/2 h-full overflow-y-auto no-scrollbar pb-32">
                         <div className="w-full max-w-3xl mx-auto p-4">
-                            <div className="flex flex-col space-y-4">
-                                {items.length === 0 ? (
-                                    <div className="text-center py-20 text-gray-400 dark:text-zinc-600">
-                                        <p>No activity logs found in the community yet.</p>
-                                    </div>
-                                ) : (
-                                    items.map((item) => (
-                                        <div key={item.id} className="relative">
-                                            <ActivityCard
-                                                username={item.username as string}
-                                                type={item.type}
-                                                workoutType={item.workoutType}
-                                                note={item.isPublicNote ? item.note : undefined}
-                                                imageUrl={item.isPublicPhoto ? item.photoUrl : undefined}
-                                                onClick={(e) => onActivityClick(item, e.currentTarget.getBoundingClientRect())}
-                                            />
+                            {isLoading ? (
+                                <SkeletonFeed count={4} />
+                            ) : (
+                                <div className="flex flex-col space-y-4">
+                                    {items.length === 0 ? (
+                                        <div className="text-center py-20 text-gray-400 dark:text-zinc-600">
+                                            <p>No activity logs found in the community yet.</p>
                                         </div>
-                                    ))
-                                )}
-                            </div>
+                                    ) : (
+                                        items.map((item) => (
+                                            <div key={item.id} className="relative">
+                                                <ActivityCard
+                                                    username={item.username as string}
+                                                    type={item.type}
+                                                    workoutType={item.workoutType}
+                                                    note={item.isPublicNote ? item.note : undefined}
+                                                    imageUrl={item.isPublicPhoto ? item.photoUrl : undefined}
+                                                    onClick={(e) => onActivityClick(item, e.currentTarget.getBoundingClientRect())}
+                                                />
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     {/* View 2: Members */}
                     <div className="w-1/2 h-full overflow-y-auto no-scrollbar pb-32">
                         <div className="w-full max-w-3xl mx-auto p-4">
-                            {members.length === 0 ? (
+                            {isLoading ? (
+                                <SkeletonMembersGrid count={4} />
+                            ) : members.length === 0 ? (
                                 <div className="text-center py-20 text-gray-400 dark:text-zinc-600">
                                     <Users size={48} className="mx-auto mb-4 opacity-50" />
                                     <p>No members found yet.</p>
@@ -161,7 +169,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-4 flex items-center justify-end text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
+                                                <div className="mt-4 flex items-center justify-end text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0 duration-300">
                                                     View Profile <ChevronRight size={16} />
                                                 </div>
                                             </div>

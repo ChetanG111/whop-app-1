@@ -4,15 +4,17 @@ import { UserProfile, LogEntry } from '../types';
 import { ActivityCard } from './ActivityCard';
 import { Heatmap } from './Heatmap';
 import { calculateStreaks } from '../utils/analytics';
+import { SkeletonStats, SkeletonHeatmap, SkeletonFeed } from './ui';
 
 interface YouViewProps {
     onOpenHeatmap: (rect: DOMRect) => void;
     onActivityClick: (activity: any, rect: DOMRect) => void;
     userProfile: UserProfile;
     activities: LogEntry[];
+    isLoading?: boolean;
 }
 
-export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick, userProfile, activities }) => {
+export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick, userProfile, activities, isLoading = false }) => {
     const handleHeatmapClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
         onOpenHeatmap(rect);
@@ -21,6 +23,31 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
     const { current, max } = useMemo(() => calculateStreaks(activities), [activities]);
 
     const cardHoverClasses = "hover:shadow-xl hover:-translate-y-1 hover:border-brand-500 dark:hover:border-brand-500 hover:bg-gray-50/50 dark:hover:bg-zinc-900/50 active:scale-[0.98] transition-all duration-300 cursor-pointer";
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="w-full max-w-2xl mx-auto p-4 pb-32">
+                <div className="flex items-center gap-3 mb-6 px-1">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Dashboard</h1>
+                </div>
+
+                {/* Skeleton Stats Cards */}
+                <SkeletonStats />
+
+                {/* Skeleton Heatmap */}
+                <div className="mb-8">
+                    <SkeletonHeatmap />
+                </div>
+
+                {/* Skeleton Recent History */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold px-1 text-gray-500 dark:text-zinc-400">Recent History</h3>
+                    <SkeletonFeed count={3} />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full max-w-2xl mx-auto p-4 pb-32">

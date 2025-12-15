@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
 import { ActivityCard } from './ActivityCard';
 import { LogEntry } from '../types';
+import { SkeletonFeed } from './ui';
 
 interface FeedViewProps {
     items: LogEntry[];
     onActivityClick: (activity: any, rect: DOMRect) => void;
+    isLoading?: boolean;
 }
 
-export const FeedView: React.FC<FeedViewProps> = ({ items, onActivityClick }) => {
+export const FeedView: React.FC<FeedViewProps> = ({ items, onActivityClick, isLoading = false }) => {
     // Calculate today's updates
     const todaysUpdates = useMemo(() => {
         const todayStr = new Date().toDateString();
@@ -27,25 +29,30 @@ export const FeedView: React.FC<FeedViewProps> = ({ items, onActivityClick }) =>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
                     </span>
                     <span className="text-xs font-bold text-brand-700 dark:text-brand-300">
-                        {todaysUpdates} New Today
+                        {isLoading ? '...' : todaysUpdates} New Today
                     </span>
                 </div>
             </div>
 
-            <div className="flex flex-col space-y-3">
-                {items.map((item) => (
-                    <ActivityCard
-                        key={item.id}
-                        username={item.username ?? 'Anonymous'} // Fallback if username missing
-                        type={item.type}
-                        workoutType={item.workoutType}
-                        // Conditionally render note and image based on public flags
-                        note={item.isPublicNote ? item.note : undefined}
-                        imageUrl={item.isPublicPhoto ? item.photoUrl : undefined}
-                        onClick={(e) => onActivityClick(item, e.currentTarget.getBoundingClientRect())}
-                    />
-                ))}
-            </div>
+            {/* Loading State */}
+            {isLoading ? (
+                <SkeletonFeed count={4} />
+            ) : (
+                <div className="flex flex-col space-y-3">
+                    {items.map((item) => (
+                        <ActivityCard
+                            key={item.id}
+                            username={item.username ?? 'Anonymous'} // Fallback if username missing
+                            type={item.type}
+                            workoutType={item.workoutType}
+                            // Conditionally render note and image based on public flags
+                            note={item.isPublicNote ? item.note : undefined}
+                            imageUrl={item.isPublicPhoto ? item.photoUrl : undefined}
+                            onClick={(e) => onActivityClick(item, e.currentTarget.getBoundingClientRect())}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

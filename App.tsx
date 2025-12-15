@@ -224,6 +224,7 @@ const App: React.FC<AppProps> = ({
           items={feedItems}
           members={propMembers}
           onActivityClick={openActivityModal}
+          isLoading={isLoading}
         />
       ) : (
         <>
@@ -235,7 +236,7 @@ const App: React.FC<AppProps> = ({
             >
               {/* Feed Section */}
               <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
-                <FeedView items={feedItems} onActivityClick={openActivityModal} />
+                <FeedView items={feedItems} onActivityClick={openActivityModal} isLoading={isLoading} />
               </div>
 
               {/* You Section */}
@@ -245,6 +246,7 @@ const App: React.FC<AppProps> = ({
                   onActivityClick={openActivityModal}
                   userProfile={userProfile}
                   activities={myActivities}
+                  isLoading={isLoading}
                 />
               </div>
             </div>
