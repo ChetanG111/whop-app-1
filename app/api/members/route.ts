@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllMembersByExperience } from '@/lib/db/users';
+import { checkRateLimit, readLimiter, getClientIp } from '@/lib/ratelimit';
 
 // GET /api/members - Get all members for an experience
 export async function GET(request: NextRequest) {
@@ -13,6 +14,10 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by experience ID (coach-only endpoint typically)
+        const rateLimitResult = await checkRateLimit(readLimiter, experienceId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         const members = await getAllMembersByExperience(experienceId);
 

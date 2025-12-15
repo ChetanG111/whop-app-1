@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createCheckin, getTodayCheckin, getUserCheckins } from '@/lib/db/checkins';
 import { getOrCreateUser } from '@/lib/db/users';
 import type { CheckinType, WorkoutType, ReflectReason } from '@/lib/supabase';
+import { checkRateLimit, writeLimiter, readLimiter, getClientIp } from '@/lib/ratelimit';
 
 // POST /api/checkins - Create a new check-in
 export async function POST(request: NextRequest) {
@@ -26,6 +27,10 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by user ID
+        const rateLimitResult = await checkRateLimit(writeLimiter, whopId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         if (!type || !['workout', 'rest', 'reflect'].includes(type)) {
             return NextResponse.json(
@@ -95,6 +100,10 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by user ID
+        const rateLimitResult = await checkRateLimit(readLimiter, whopId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         // Get user
         const user = await getOrCreateUser(whopId, whopExperienceId);

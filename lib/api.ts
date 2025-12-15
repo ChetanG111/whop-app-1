@@ -76,7 +76,8 @@ async function apiRequest<T>(
         const data = await response.json();
 
         if (!response.ok) {
-            return { data: null, error: data.error || 'Request failed' };
+            // Prefer 'message' for user-friendly errors (e.g., rate limit responses)
+            return { data: null, error: data.message || data.error || 'Request failed' };
         }
 
         return { data, error: null };

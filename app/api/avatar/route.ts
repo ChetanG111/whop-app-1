@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadAvatar } from '@/lib/storage';
 import { getOrCreateUser } from '@/lib/db/users';
+import { checkRateLimit, avatarLimiter, getClientIp } from '@/lib/ratelimit';
 
 /**
  * POST /api/avatar - Upload an avatar to Supabase Storage
@@ -15,9 +16,14 @@ import { getOrCreateUser } from '@/lib/db/users';
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
+        const whopId = formData.get('whopId') as string | null;
+
+        // Rate limit by user ID if available, otherwise by IP
+        const rateLimitId = whopId || getClientIp(request);
+        const rateLimitResult = await checkRateLimit(avatarLimiter, rateLimitId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         const file = formData.get('file') as File | null;
-        const whopId = formData.get('whopId') as string | null;
         const whopExperienceId = formData.get('whopExperienceId') as string | null;
 
         // Validate required fields

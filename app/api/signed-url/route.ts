@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSignedUrl, getAvatarSignedUrl } from '@/lib/storage';
+import { checkRateLimit, signedUrlLimiter, getClientIp } from '@/lib/ratelimit';
 
 /**
  * GET /api/signed-url - Generate a signed URL for viewing a private photo
@@ -12,6 +13,11 @@ import { getSignedUrl, getAvatarSignedUrl } from '@/lib/storage';
  */
 export async function GET(request: NextRequest) {
     try {
+        // Rate limit by IP
+        const ip = getClientIp(request);
+        const rateLimitResult = await checkRateLimit(signedUrlLimiter, ip);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
+
         const { searchParams } = new URL(request.url);
         const path = searchParams.get('path');
         const bucket = searchParams.get('bucket') || 'checkin-photos';

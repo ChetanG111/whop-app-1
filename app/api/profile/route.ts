@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrCreateUser, getUserProfile, createUserProfile, updateUserProfile } from '@/lib/db/users';
 import { getUserStreak } from '@/lib/db/streaks';
+import { checkRateLimit, readLimiter, writeLimiter } from '@/lib/ratelimit';
 
 // GET /api/profile - Get user profile with streak
 export async function GET(request: NextRequest) {
@@ -15,6 +16,10 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by user ID
+        const rateLimitResult = await checkRateLimit(readLimiter, whopId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         // Get or create user
         const user = await getOrCreateUser(whopId, whopExperienceId);
@@ -71,6 +76,10 @@ export async function PATCH(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by user ID
+        const rateLimitResult = await checkRateLimit(writeLimiter, whopId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         // Get user
         const user = await getOrCreateUser(whopId, whopExperienceId);

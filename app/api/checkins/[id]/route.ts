@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateCheckin, deleteCheckin } from '@/lib/db/checkins';
 import { getOrCreateUser } from '@/lib/db/users';
+import { checkRateLimit, writeLimiter, getClientIp } from '@/lib/ratelimit';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -19,6 +20,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by user ID
+        const rateLimitResult = await checkRateLimit(writeLimiter, whopId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         // Get user
         const user = await getOrCreateUser(whopId, whopExperienceId);
@@ -69,6 +74,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
                 { status: 400 }
             );
         }
+
+        // Rate limit by user ID
+        const rateLimitResult = await checkRateLimit(writeLimiter, whopId);
+        if (!rateLimitResult.success) return rateLimitResult.response!;
 
         // Get user
         const user = await getOrCreateUser(whopId, whopExperienceId);
