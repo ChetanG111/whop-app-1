@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateCheckin, deleteCheckin } from '@/lib/db/checkins';
 import { getOrCreateUser } from '@/lib/db/users';
 import { checkRateLimit, writeLimiter, getClientIp } from '@/lib/ratelimit';
+import { invalidateFeedCache, invalidateMembersCache } from '@/lib/cache';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -47,6 +48,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 { error: 'Check-in not found or not authorized' },
                 { status: 404 }
             );
+        }
+
+        // Invalidate feed cache if visibility was changed (affects public feed)
+        if (updates.is_note_public !== undefined || updates.is_photo_public !== undefined) {
+            await invalidateFeedCache(whopExperienceId);
         }
 
         return NextResponse.json({ checkin });
@@ -99,6 +105,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
                 { status: 404 }
             );
         }
+
+        // Invalidate caches - deleted check-in affects feed and member stats
+        await Promise.all([
+            invalidateFeedCache(whopExperienceId),
+            invalidateMembersCache(whopExperienceId),
+        ]);
 
         return NextResponse.json({ success: true });
     } catch (error) {

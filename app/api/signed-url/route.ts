@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSignedUrl, getAvatarSignedUrl } from '@/lib/storage';
 import { checkRateLimit, signedUrlLimiter, getClientIp } from '@/lib/ratelimit';
+import { cacheGet, cacheSet, CACHE_KEYS, CACHE_TTL } from '@/lib/cache';
 
 /**
  * GET /api/signed-url - Generate a signed URL for viewing a private photo
@@ -29,6 +30,15 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Check cache first
+        const cacheKey = CACHE_KEYS.signedUrl(bucket, path);
+        const cachedUrl = await cacheGet<string>(cacheKey);
+
+        if (cachedUrl) {
+            return NextResponse.json({ url: cachedUrl, cached: true });
+        }
+
+        // Cache miss - generate new signed URL
         let url: string | null;
 
         if (bucket === 'avatars') {
@@ -44,7 +54,10 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({ url });
+        // Cache the signed URL (30 min, Supabase URLs expire in 1 hour)
+        await cacheSet(cacheKey, url, CACHE_TTL.SIGNED_URL);
+
+        return NextResponse.json({ url, cached: false });
     } catch (error) {
         console.error('Error in GET /api/signed-url:', error);
         return NextResponse.json(

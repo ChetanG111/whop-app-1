@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrCreateUser, getUserProfile, createUserProfile, updateUserProfile } from '@/lib/db/users';
 import { getUserStreak } from '@/lib/db/streaks';
 import { checkRateLimit, readLimiter, writeLimiter } from '@/lib/ratelimit';
+import { invalidateProfileCache, invalidateMembersCache } from '@/lib/cache';
 
 // GET /api/profile - Get user profile with streak
 export async function GET(request: NextRequest) {
@@ -126,6 +127,12 @@ export async function PATCH(request: NextRequest) {
                 { status: 500 }
             );
         }
+
+        // Invalidate caches - profile change affects members view (display name, avatar)
+        await Promise.all([
+            invalidateProfileCache(user.id),
+            invalidateMembersCache(whopExperienceId), // Only if visible fields changed
+        ]);
 
         return NextResponse.json({
             profile: {

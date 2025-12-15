@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllMembersByExperience } from '@/lib/db/users';
+import { getAllMembersByExperience, MemberData } from '@/lib/db/users';
 import { checkRateLimit, readLimiter, getClientIp } from '@/lib/ratelimit';
+import { cacheGet, cacheSet, CACHE_KEYS, CACHE_TTL } from '@/lib/cache';
 
 // GET /api/members - Get all members for an experience
 export async function GET(request: NextRequest) {
@@ -19,9 +20,21 @@ export async function GET(request: NextRequest) {
         const rateLimitResult = await checkRateLimit(readLimiter, experienceId);
         if (!rateLimitResult.success) return rateLimitResult.response!;
 
+        // Check cache first
+        const cacheKey = CACHE_KEYS.members(experienceId);
+        const cachedMembers = await cacheGet<MemberData[]>(cacheKey);
+
+        if (cachedMembers) {
+            return NextResponse.json({ members: cachedMembers, cached: true });
+        }
+
+        // Cache miss - fetch from DB
         const members = await getAllMembersByExperience(experienceId);
 
-        return NextResponse.json({ members });
+        // Cache the result
+        await cacheSet(cacheKey, members, CACHE_TTL.MEMBERS);
+
+        return NextResponse.json({ members, cached: false });
     } catch (error) {
         console.error('Error in GET /api/members:', error);
         return NextResponse.json(

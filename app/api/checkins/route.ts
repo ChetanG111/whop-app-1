@@ -3,6 +3,7 @@ import { createCheckin, getTodayCheckin, getUserCheckins } from '@/lib/db/checki
 import { getOrCreateUser } from '@/lib/db/users';
 import type { CheckinType, WorkoutType, ReflectReason } from '@/lib/supabase';
 import { checkRateLimit, writeLimiter, readLimiter, getClientIp } from '@/lib/ratelimit';
+import { invalidateFeedCache, invalidateMembersCache } from '@/lib/cache';
 
 // POST /api/checkins - Create a new check-in
 export async function POST(request: NextRequest) {
@@ -75,6 +76,12 @@ export async function POST(request: NextRequest) {
                 { status: 500 }
             );
         }
+
+        // Invalidate caches - new check-in affects feed and member stats
+        await Promise.all([
+            invalidateFeedCache(whopExperienceId),
+            invalidateMembersCache(whopExperienceId),
+        ]);
 
         return NextResponse.json({ checkin }, { status: 201 });
     } catch (error) {
