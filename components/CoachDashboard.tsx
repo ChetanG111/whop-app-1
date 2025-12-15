@@ -52,15 +52,25 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
                             Monitor community activity.
                         </p>
                     </div>
-                    <div className="bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-full border border-brand-100 dark:border-brand-900/50 flex items-center gap-2 transition-all duration-300">
-                        {activeView === 'FEED' ? (
-                            <LayoutList size={16} className="text-brand-600 dark:text-brand-400" />
-                        ) : (
-                            <Users size={16} className="text-brand-600 dark:text-brand-400" />
-                        )}
-                        <span className="text-sm font-bold text-brand-700 dark:text-brand-300 min-w-[90px] text-right">
-                            {activeView === 'FEED' ? `${items.length} Updates` : `${members.length} Members`}
-                        </span>
+                    <div className="bg-brand-50 dark:bg-brand-900/20 px-3 py-2 rounded-full border border-brand-100 dark:border-brand-900/50 flex items-center gap-0.5 transition-all duration-300 overflow-hidden">
+                        <div className="relative w-4 h-4 shrink-0">
+                            <LayoutList
+                                size={16}
+                                className={`absolute inset-0 text-brand-600 dark:text-brand-400 transition-all duration-300 ${activeView === 'FEED' ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
+                            />
+                            <Users
+                                size={16}
+                                className={`absolute inset-0 text-brand-600 dark:text-brand-400 transition-all duration-300 ${activeView === 'MEMBERS' ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
+                            />
+                        </div>
+                        <div className="relative h-5 min-w-[85px]">
+                            <span className={`absolute inset-0 flex items-center justify-end text-sm font-bold text-brand-700 dark:text-brand-300 transition-all duration-300 ${activeView === 'FEED' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+                                {items.length} Updates
+                            </span>
+                            <span className={`absolute inset-0 flex items-center justify-end text-sm font-bold text-brand-700 dark:text-brand-300 transition-all duration-300 ${activeView === 'MEMBERS' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+                                {members.length} Members
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,19 +189,19 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
 
                         <button
                             onClick={() => setActiveView('FEED')}
-                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === 'FEED' ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === 'FEED' ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                         >
-                            <LayoutList size={18} />
-                            Feed
+                            <LayoutList size={18} className={`transition-transform duration-300 ${activeView === 'FEED' ? 'scale-110' : 'scale-100'}`} />
+                            <span className={`transition-all duration-300 ${activeView === 'FEED' ? 'opacity-100 translate-x-0' : 'opacity-80 -translate-x-0.5'}`}>Feed</span>
                         </button>
                         <button
                             onClick={() => setActiveView('MEMBERS')}
-                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === 'MEMBERS' ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                            className={`relative z-10 w-24 sm:w-28 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === 'MEMBERS' ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                         >
-                            <Users size={18} />
-                            Members
+                            <Users size={18} className={`transition-transform duration-300 ${activeView === 'MEMBERS' ? 'scale-110' : 'scale-100'}`} />
+                            <span className={`transition-all duration-300 ${activeView === 'MEMBERS' ? 'opacity-100 translate-x-0' : 'opacity-80 translate-x-0.5'}`}>Members</span>
                         </button>
                     </div>
                 </div>

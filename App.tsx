@@ -276,19 +276,19 @@ const App: React.FC<AppProps> = ({
 
                 <button
                   onClick={() => setActiveView(ViewState.FEED)}
-                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === ViewState.FEED ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.FEED ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
-                  <LayoutList size={18} />
-                  Feed
+                  <LayoutList size={18} className={`transition-transform duration-300 ${activeView === ViewState.FEED ? 'scale-110' : 'scale-100'}`} />
+                  <span className={`transition-all duration-300 ${activeView === ViewState.FEED ? 'opacity-100 translate-x-0' : 'opacity-80 -translate-x-0.5'}`}>Feed</span>
                 </button>
                 <button
                   onClick={() => setActiveView(ViewState.YOU)}
-                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${activeView === ViewState.YOU ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.YOU ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
-                  <User size={18} />
-                  You
+                  <User size={18} className={`transition-transform duration-300 ${activeView === ViewState.YOU ? 'scale-110' : 'scale-100'}`} />
+                  <span className={`transition-all duration-300 ${activeView === ViewState.YOU ? 'opacity-100 translate-x-0' : 'opacity-80 translate-x-0.5'}`}>You</span>
                 </button>
               </div>
             </div>
