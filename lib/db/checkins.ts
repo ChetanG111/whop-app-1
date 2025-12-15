@@ -196,6 +196,17 @@ export async function deleteCheckin(
 ): Promise<boolean> {
     const supabase = await createClient();
 
+    // First, get the check-in to know which user's streak to update
+    const { data: checkin } = await supabase
+        .from('checkins')
+        .select('user_id')
+        .eq('id', checkinId)
+        .single();
+
+    if (!checkin) {
+        return false;
+    }
+
     let query = supabase
         .from('checkins')
         .delete()
@@ -211,6 +222,15 @@ export async function deleteCheckin(
     if (error) {
         console.error('Error deleting check-in:', error);
         return false;
+    }
+
+    // Trigger streak recalculation for the affected user
+    // Use recalculate (not update) because we need to scan remaining check-ins
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: rpcError } = await supabase.rpc('recalculate_user_streak' as any, { p_user_id: checkin.user_id });
+
+    if (rpcError) {
+        console.error('Error recalculating streak:', rpcError);
     }
 
     return true;

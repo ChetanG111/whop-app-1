@@ -224,8 +224,12 @@ export function useAppData({
                 return false;
             }
 
-            // Refresh data
-            await Promise.all([refreshFeed(), refreshMyActivities()]);
+            // Refresh data (include members for coach mode)
+            const refreshPromises = [refreshFeed(), refreshMyActivities()];
+            if (isCoachMode) {
+                refreshPromises.push(refreshMembers());
+            }
+            await Promise.all(refreshPromises);
 
             // Refresh streak
             const profileResult = await api.getProfile(userContext);
@@ -268,7 +272,22 @@ export function useAppData({
             setError(result.error);
             return false;
         }
-        await Promise.all([refreshFeed(), refreshMyActivities()]);
+        // Refresh data (include members for coach mode)
+        const refreshPromises = [refreshFeed(), refreshMyActivities()];
+        if (isCoachMode) {
+            refreshPromises.push(refreshMembers());
+        }
+        await Promise.all(refreshPromises);
+
+        // Refresh streak after deletion
+        const profileResult = await api.getProfile(userContext);
+        if (profileResult.data?.streak) {
+            setStreak({
+                current: profileResult.data.streak.current,
+                longest: profileResult.data.streak.longest,
+            });
+        }
+
         return true;
     };
 

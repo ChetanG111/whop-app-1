@@ -14,12 +14,20 @@ DECLARE
     v_current_streak INTEGER;
     v_longest_streak INTEGER;
     v_today DATE := CURRENT_DATE;
+    v_row_exists BOOLEAN;
 BEGIN
-    -- Get current streak data
-    SELECT last_checkin_date, current_streak, longest_streak
-    INTO v_last_date, v_current_streak, v_longest_streak
+    -- Check if streak row exists and get current data
+    SELECT last_checkin_date, current_streak, longest_streak, TRUE
+    INTO v_last_date, v_current_streak, v_longest_streak, v_row_exists
     FROM user_streaks
     WHERE user_id = p_user_id;
+    
+    -- Default values if row doesn't exist
+    IF v_row_exists IS NULL THEN
+        v_current_streak := 0;
+        v_longest_streak := 0;
+        v_last_date := NULL;
+    END IF;
     
     -- Calculate new streak
     IF v_last_date IS NULL THEN
@@ -41,13 +49,89 @@ BEGIN
         v_longest_streak := v_current_streak;
     END IF;
     
-    -- Save updated streak
-    UPDATE user_streaks
-    SET current_streak = v_current_streak,
-        longest_streak = v_longest_streak,
-        last_checkin_date = v_today,
-        updated_at = now()
+    -- UPSERT: Insert if not exists, update if exists
+    INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_checkin_date, updated_at)
+    VALUES (p_user_id, v_current_streak, v_longest_streak, v_today, now())
+    ON CONFLICT (user_id) DO UPDATE SET
+        current_streak = EXCLUDED.current_streak,
+        longest_streak = EXCLUDED.longest_streak,
+        last_checkin_date = EXCLUDED.last_checkin_date,
+        updated_at = now();
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================
+-- FUNCTION: Recalculate user streak from all check-ins
+-- Use this after deleting a check-in
+-- =====================================
+
+CREATE OR REPLACE FUNCTION recalculate_user_streak(p_user_id UUID)
+RETURNS void AS $$
+DECLARE
+    v_current_streak INTEGER := 0;
+    v_longest_streak INTEGER := 0;
+    v_last_date DATE := NULL;
+    v_prev_date DATE := NULL;
+    v_running_streak INTEGER := 0;
+    v_today DATE := CURRENT_DATE;
+    checkin_record RECORD;
+BEGIN
+    -- Get existing longest_streak to preserve it (only decrease if we must)
+    SELECT longest_streak INTO v_longest_streak
+    FROM user_streaks
     WHERE user_id = p_user_id;
+    
+    IF v_longest_streak IS NULL THEN
+        v_longest_streak := 0;
+    END IF;
+    
+    -- Loop through all check-ins in descending date order
+    FOR checkin_record IN
+        SELECT DISTINCT checkin_date
+        FROM checkins
+        WHERE user_id = p_user_id
+        ORDER BY checkin_date DESC
+    LOOP
+        IF v_last_date IS NULL THEN
+            -- First record (most recent)
+            v_last_date := checkin_record.checkin_date;
+            
+            -- Check if streak is still active (today or yesterday)
+            IF checkin_record.checkin_date = v_today OR checkin_record.checkin_date = v_today - INTERVAL '1 day' THEN
+                v_running_streak := 1;
+                v_prev_date := checkin_record.checkin_date;
+            ELSE
+                -- Streak broken, no active streak
+                v_running_streak := 0;
+                EXIT; -- No need to continue
+            END IF;
+        ELSE
+            -- Check if consecutive with previous
+            IF v_prev_date - INTERVAL '1 day' = checkin_record.checkin_date THEN
+                v_running_streak := v_running_streak + 1;
+                v_prev_date := checkin_record.checkin_date;
+            ELSE
+                -- Gap found, streak ends here
+                EXIT;
+            END IF;
+        END IF;
+    END LOOP;
+    
+    v_current_streak := v_running_streak;
+    
+    -- Update longest if current exceeds it
+    IF v_current_streak > v_longest_streak THEN
+        v_longest_streak := v_current_streak;
+    END IF;
+    
+    -- UPSERT the streak data
+    INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_checkin_date, updated_at)
+    VALUES (p_user_id, v_current_streak, v_longest_streak, v_last_date, now())
+    ON CONFLICT (user_id) DO UPDATE SET
+        current_streak = EXCLUDED.current_streak,
+        longest_streak = GREATEST(user_streaks.longest_streak, EXCLUDED.longest_streak),
+        last_checkin_date = EXCLUDED.last_checkin_date,
+        updated_at = now();
 END;
 $$ LANGUAGE plpgsql;
 
