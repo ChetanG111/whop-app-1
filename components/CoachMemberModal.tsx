@@ -31,7 +31,12 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
             setIsRendered(true);
             setShowContent(false);
 
-            // Start State
+            // iOS-like spring animation timing - faster and snappier
+            // cubic-bezier(0.2, 0, 0, 1) mimics iOS's natural deceleration
+            const iosSpringTiming = 'cubic-bezier(0.2, 0, 0, 1)';
+            const animationDuration = '400ms';
+
+            // Start State - matches the card position exactly
             setAnimStyles({
                 position: 'fixed',
                 top: `${triggerRect.top}px`,
@@ -42,11 +47,12 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                 opacity: 1,
                 zIndex: 50,
                 overflow: 'hidden',
-                transform: 'none',
+                transform: 'scale(1)',
+                transformOrigin: 'center center',
                 transition: 'none'
             });
 
-            // Target State
+            // Target State - expand to full modal with smooth iOS animation
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     const viewportW = window.innerWidth;
@@ -68,15 +74,23 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                         borderRadius: '1.5rem',
                         zIndex: 50,
                         opacity: 1,
-                        transition: 'all 500ms cubic-bezier(0.32, 0.72, 0, 1)',
+                        transform: 'scale(1)',
+                        transformOrigin: 'center center',
+                        transition: `all ${animationDuration} ${iosSpringTiming}`,
                         overflow: 'hidden'
                     });
 
-                    setTimeout(() => setShowContent(true), 200);
+                    // Show content after brief delay for cleaner animation
+                    setTimeout(() => setShowContent(true), 120);
                 });
             });
         } else if (!isOpen && isRendered && triggerRect) {
+            // Close animation - iOS-like collapse back to card
             setShowContent(false);
+
+            const iosSpringTiming = 'cubic-bezier(0.2, 0, 0, 1)';
+            const closeAnimationDuration = '350ms';
+
             requestAnimationFrame(() => {
                 setAnimStyles({
                     position: 'fixed',
@@ -85,11 +99,22 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                     width: `${triggerRect.width}px`,
                     height: `${triggerRect.height}px`,
                     borderRadius: '1rem',
-                    opacity: 0,
+                    opacity: 1, // Keep opacity at 1 during the collapse
                     zIndex: 50,
                     overflow: 'hidden',
-                    transition: 'all 400ms cubic-bezier(0.32, 0.72, 0, 1)'
+                    transform: 'scale(1)',
+                    transformOrigin: 'center center',
+                    transition: `all ${closeAnimationDuration} ${iosSpringTiming}`
                 });
+
+                // Fade out near the end of the animation
+                setTimeout(() => {
+                    setAnimStyles(prev => ({
+                        ...prev,
+                        opacity: 0,
+                        transition: 'opacity 100ms ease-out'
+                    }));
+                }, 280);
             });
 
             const timer = setTimeout(() => setIsRendered(false), 400);

@@ -2,6 +2,9 @@ import { headers } from "next/headers";
 import { whopsdk } from "@/lib/whop-sdk";
 import ClientApp from "./client-page.tsx";
 
+// Force dynamic rendering - this page requires runtime headers for authentication
+export const dynamic = 'force-dynamic';
+
 // Development fallback configuration
 const DEV_USER = {
     userId: process.env.DEV_USER_ID || "dev_user_123",

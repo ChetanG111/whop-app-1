@@ -20,6 +20,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
     const [selectedMember, setSelectedMember] = useState<MemberData | null>(null);
     const [memberTriggerRect, setMemberTriggerRect] = useState<DOMRect | null>(null);
     const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+    const [animatingMemberId, setAnimatingMemberId] = useState<string | null>(null);
 
     // Get logs for a specific member (for the modal)
     const getMemberLogs = (memberId: string): LogEntry[] => {
@@ -34,9 +35,17 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
     };
 
     const handleMemberClick = (member: MemberData, e: React.MouseEvent) => {
-        setMemberTriggerRect(e.currentTarget.getBoundingClientRect());
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMemberTriggerRect(rect);
         setSelectedMember(member);
+        setAnimatingMemberId(member.userId);
         setIsMemberModalOpen(true);
+    };
+
+    const handleMemberModalClose = () => {
+        setIsMemberModalOpen(false);
+        // Clear the animating member after the close animation completes
+        setTimeout(() => setAnimatingMemberId(null), 400);
     };
 
     return (
@@ -131,12 +140,20 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
                                         const lastActiveText = member.lastCheckinDate
                                             ? `Last active: ${new Date(member.lastCheckinDate).toLocaleDateString()}`
                                             : 'No activity yet';
+                                        const isAnimating = animatingMemberId === member.userId;
 
                                         return (
                                             <div
                                                 key={member.userId}
                                                 onClick={(e) => handleMemberClick(member, e)}
-                                                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:border-brand-500 dark:hover:border-brand-500 hover:-translate-y-1 transition-all duration-300 cursor-pointer active:scale-[0.98] group"
+                                                className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-2xl shadow-sm hover:shadow-lg hover:border-brand-500 dark:hover:border-brand-500 hover:-translate-y-1 cursor-pointer active:scale-[0.98] group`}
+                                                style={{
+                                                    transitionProperty: 'opacity, transform, box-shadow, border-color',
+                                                    transitionDuration: isAnimating ? '350ms' : '300ms',
+                                                    transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)',
+                                                    opacity: isAnimating ? 0 : 1,
+                                                    transform: isAnimating ? 'scale(0.85)' : 'scale(1)',
+                                                }}
                                             >
                                                 <div className="flex items-center gap-4 mb-4">
                                                     <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-400 font-bold text-lg group-hover:bg-brand-50 dark:group-hover:bg-brand-900/30 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors overflow-hidden">
@@ -217,7 +234,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
 
             <CoachMemberModal
                 isOpen={isMemberModalOpen}
-                onClose={() => setIsMemberModalOpen(false)}
+                onClose={handleMemberModalClose}
                 triggerRect={memberTriggerRect}
                 memberData={selectedMember}
                 logs={selectedMember ? getMemberLogs(selectedMember.userId) : []}
