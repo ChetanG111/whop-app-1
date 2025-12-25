@@ -157,7 +157,8 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                         borderRadius: '1.5rem',
                         zIndex: 50,
                         opacity: 1,
-                        transition: 'all 500ms cubic-bezier(0.32, 0.72, 0, 1)',
+                        // Heavy Spring Balanced (1.15 overshoot)
+                        transition: 'all 550ms cubic-bezier(0.175, 0.885, 0.32, 1.15)',
                     });
 
                     setTimeout(() => setShowContent(true), 200);
@@ -244,7 +245,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                     className={`flex items-center justify-between p-6 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'
                         }`}
                 >
-                    <div className="flex flex-col">
+                    <div className={showContent ? 'animate-spring-up delay-1' : ''}>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             {activity.type?.toUpperCase() || 'ACTIVITY'}
                             {activity.workoutType && (
@@ -264,7 +265,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                        className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors ${showContent ? 'animate-spring-up delay-2' : ''}`}
                     >
                         <X size={20} />
                     </button>
@@ -276,11 +277,13 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                         }`}
                 >
                     {/* Image Section */}
-                    <ImageSection imageUrl={activity.imageUrl} />
+                    <div className={showContent ? 'animate-spring-up delay-3' : ''}>
+                        <ImageSection imageUrl={activity.imageUrl} />
+                    </div>
 
                     <div className="p-6 space-y-6">
                         {/* Note */}
-                        <div className="space-y-2">
+                        <div className={`space-y-2 ${showContent ? 'animate-spring-up delay-4' : ''}`}>
                             <label className="text-xs font-bold text-gray-400 dark:text-zinc-600 uppercase tracking-wider">
                                 Note
                             </label>
@@ -291,7 +294,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 
                         {/* Reflection Reason */}
                         {activity.reason && (
-                            <div className="inline-block px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-900 text-sm font-medium text-gray-600 dark:text-zinc-400">
+                            <div className={`inline-block px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-900 text-sm font-medium text-gray-600 dark:text-zinc-400 ${showContent ? 'animate-spring-up delay-5' : ''}`}>
                                 Reason: {activity.reason}
                             </div>
                         )}
@@ -307,7 +310,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                         {/* Delete Button */}
                         <button
                             onClick={handleTryDelete}
-                            className="flex items-center gap-2 px-5 py-3 text-rose-600 dark:text-rose-500 font-medium rounded-xl bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors active:scale-95 text-sm shrink-0"
+                            className={`flex items-center gap-2 px-5 py-3 text-rose-600 dark:text-rose-500 font-medium rounded-xl bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors active:scale-95 text-sm shrink-0 ${showContent ? 'animate-spring-up delay-6' : ''}`}
                         >
                             <Trash2 size={18} />
                             <span>Delete Log</span>

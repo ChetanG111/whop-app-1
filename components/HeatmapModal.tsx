@@ -30,7 +30,7 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                 left: `${triggerRect.left}px`,
                 width: `${triggerRect.width}px`,
                 height: `${triggerRect.height}px`,
-                borderRadius: '1rem',
+                borderRadius: '16px',
                 opacity: 1,
                 zIndex: 50,
                 overflow: 'hidden',
@@ -57,10 +57,11 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                         left: `${targetLeft}px`,
                         width: `${targetW}px`,
                         height: `${targetH}px`,
-                        borderRadius: '1.5rem',
+                        borderRadius: '24px',
                         zIndex: 50,
                         opacity: 1,
-                        transition: 'all 500ms cubic-bezier(0.32, 0.72, 0, 1)',
+                        // Heavy Spring Balanced (1.15 overshoot)
+                        transition: 'all 550ms cubic-bezier(0.175, 0.885, 0.32, 1.15)',
                         overflow: 'hidden'
                     });
 
@@ -76,7 +77,7 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                     left: `${triggerRect.left}px`,
                     width: `${triggerRect.width}px`,
                     height: `${triggerRect.height}px`,
-                    borderRadius: '1rem',
+                    borderRadius: '16px',
                     opacity: 0.8,
                     zIndex: 50,
                     overflow: 'hidden',
@@ -147,13 +148,13 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
 
                 {/* Header */}
                 <div className={`flex items-center justify-between px-5 py-4 shrink-0 bg-white dark:bg-zinc-950 z-20 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
-                    <div>
+                    <div className={showContent ? 'animate-spring-up delay-1' : ''}>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Yearly Overview</h2>
                         <p className="text-gray-500 dark:text-zinc-500 text-sm">Consistency Map</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors border border-gray-200 dark:border-zinc-800"
+                        className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors border border-gray-200 dark:border-zinc-800 ${showContent ? 'animate-spring-up delay-2' : ''}`}
                     >
                         <X size={20} />
                     </button>
@@ -164,7 +165,7 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
 
                     {/* Heatmap Section */}
                     <div className="p-5 overflow-hidden flex flex-col justify-center bg-gray-50 dark:bg-zinc-950/50 relative flex-1">
-                        <div className="w-full overflow-x-auto overflow-y-hidden no-scrollbar py-6 px-4 border border-gray-200 dark:border-zinc-900 rounded-xl bg-white dark:bg-zinc-950 shadow-sm dark:shadow-inner">
+                        <div className={`w-full overflow-x-auto overflow-y-hidden no-scrollbar py-6 px-4 border border-gray-200 dark:border-zinc-900 rounded-xl bg-white dark:bg-zinc-950 shadow-sm dark:shadow-inner ${showContent ? 'animate-spring-up delay-3' : ''}`}>
                             <Heatmap
                                 logs={logs}
                                 onDayClick={(date, level) => {
@@ -176,7 +177,7 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                     </div>
 
                     {/* Info Panel - Below heatmap */}
-                    <div className="w-full shrink-0 border-t border-gray-200 dark:border-zinc-900 bg-white dark:bg-zinc-900/20 p-5 overflow-hidden">
+                    <div className={`w-full shrink-0 border-t border-gray-200 dark:border-zinc-900 bg-white dark:bg-zinc-900/20 p-5 overflow-hidden ${showContent ? 'animate-spring-up delay-4' : ''}`}>
                         {selectedDate ? (
                             <div key={selectedDate.toString()} className="flex flex-col animate-slide-up">
                                 <div className="flex items-center justify-between mb-4">

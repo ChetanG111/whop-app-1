@@ -105,7 +105,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 left: `${triggerRect.left}px`,
                 width: `${triggerRect.width}px`,
                 height: `${triggerRect.height}px`,
-                borderRadius: '9999px',
+                borderRadius: '48px',
                 opacity: 0,
                 zIndex: 50,
                 transform: 'scale(1)',
@@ -130,11 +130,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         left: `${targetLeft}px`,
                         width: `${targetW}px`,
                         height: `${targetH}px`,
-                        borderRadius: '1.5rem',
+                        borderRadius: '24px',
                         opacity: 1,
                         zIndex: 50,
                         transform: 'scale(1)',
-                        transition: 'all 280ms cubic-bezier(0.5, 0, 0.1, 1)',
+                        // Heavy Spring Balanced (1.15 overshoot)
+                        transition: 'all 550ms cubic-bezier(0.175, 0.885, 0.32, 1.15)',
                         overflow: 'hidden',
                     });
                 });
@@ -148,7 +149,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     left: `${triggerRect.left}px`,
                     width: `${triggerRect.width}px`,
                     height: `${triggerRect.height}px`,
-                    borderRadius: '9999px',
+                    borderRadius: '48px',
                     opacity: 0,
                     zIndex: 50,
                     transform: 'scale(1)',
@@ -249,7 +250,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             </div>
 
                             <div className="p-6 pt-4 flex flex-col items-center flex-1 overflow-y-auto no-scrollbar">
-                                <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 overflow-hidden mb-4 shadow-xl">
+                                <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 overflow-hidden mb-4 shadow-xl animate-spring-up delay-1">
                                     {avatarUrl ? (
                                         <img src={avatarUrl} alt="Me" className="w-full h-full object-cover" />
                                     ) : (
@@ -258,14 +259,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
+                                <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white animate-spring-up delay-2">
                                     {profile.name}
                                 </h1>
-                                <p className="text-gray-500 dark:text-zinc-400 text-center mb-8">{profile.bio}</p>
+                                <p className="text-gray-500 dark:text-zinc-400 text-center mb-8 animate-spring-up delay-3">{profile.bio}</p>
 
                                 <div className="w-full space-y-3">
-                                    <MenuOption icon={<User size={20} />} label="Edit Profile" onClick={() => setView('EDIT_PROFILE')} />
-                                    <MenuOption icon={<Settings size={20} />} label="App Settings" onClick={() => setView('SETTINGS')} />
+                                    <div className="animate-spring-up delay-4">
+                                        <MenuOption icon={<User size={20} />} label="Edit Profile" onClick={() => setView('EDIT_PROFILE')} />
+                                    </div>
+                                    <div className="animate-spring-up delay-5">
+                                        <MenuOption icon={<Settings size={20} />} label="App Settings" onClick={() => setView('SETTINGS')} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -301,7 +306,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             <div className="p-6 flex flex-col items-center overflow-y-auto no-scrollbar flex-1">
                                 {view === 'EDIT_PROFILE' && (
                                     <div className="w-full flex flex-col items-center">
-                                        <div className="relative mb-8 group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+                                        <div className="relative mb-8 group cursor-pointer animate-spring-up delay-1" onClick={() => avatarInputRef.current?.click()}>
                                             <input
                                                 type="file"
                                                 ref={avatarInputRef}
@@ -331,7 +336,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                         </div>
 
                                         <div className="w-full space-y-6">
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 animate-spring-up delay-2">
                                                 <label className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider ml-1">
                                                     Display Name
                                                 </label>
@@ -344,7 +349,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                                 />
                                             </div>
 
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 animate-spring-up delay-3">
                                                 <label className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider ml-1">
                                                     Bio
                                                 </label>
@@ -361,13 +366,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
                                 {view === 'SETTINGS' && (
                                     <div className="w-full">
-                                        <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-4">
+                                        <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-4 animate-spring-up delay-1">
                                             Appearance
                                         </h3>
 
                                         <button
                                             onClick={handleThemeToggle}
-                                            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200 active:scale-[0.98]"
+                                            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200 active:scale-[0.98] animate-spring-up delay-2"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-300">
@@ -396,12 +401,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                         </button>
 
                                         <div className="mt-8">
-                                            <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-4">
+                                            <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-4 animate-spring-up delay-3">
                                                 Data
                                             </h3>
                                             <button
                                                 onClick={() => setShowDeleteConfirm(true)}
-                                                className="w-full flex items-center justify-between p-4 bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-900/30 rounded-xl group transition-all duration-200 hover:bg-rose-100 dark:hover:bg-rose-900/20 active:scale-[0.98]"
+                                                className="w-full flex items-center justify-between p-4 bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-900/30 rounded-xl group transition-all duration-200 hover:bg-rose-100 dark:hover:bg-rose-900/20 active:scale-[0.98] animate-spring-up delay-4"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-500">

@@ -52,7 +52,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
         left: `${triggerRect.left}px`,
         width: `${triggerRect.width}px`,
         height: `${triggerRect.height}px`,
-        borderRadius: '9999px',
+        borderRadius: '48px',
         opacity: 0,
         zIndex: 50,
         transform: 'scale(1)',
@@ -70,7 +70,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
           // Use 450px max width, or viewport width minus margins
           const margin = 24;
           const targetW = Math.min(viewportW - (margin * 2), 450);
-          const targetH = Math.min(viewportH - (margin * 2), 800);
+          const targetH = Math.min(viewportH * 0.8, 800);
 
           // Center horizontally and vertically
           const targetLeft = (viewportW - targetW) / 2;
@@ -82,12 +82,12 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
             left: `${targetLeft}px`,
             width: `${targetW}px`,
             height: `${targetH}px`,
-            borderRadius: '1.5rem',
+            borderRadius: '24px',
             opacity: 1,
             zIndex: 50,
             transform: 'scale(1)',
-            // Slow start, fast snap end (Slow-Fast)
-            transition: 'all 280ms cubic-bezier(0.5, 0, 0.1, 1)',
+            // Heavy Spring Balanced (1.15 overshoot)
+            transition: 'all 550ms cubic-bezier(0.175, 0.885, 0.32, 1.15)',
             overflow: 'hidden'
           });
         });
@@ -101,7 +101,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
           left: `${triggerRect.left}px`,
           width: `${triggerRect.width}px`,
           height: `${triggerRect.height}px`,
-          borderRadius: '9999px',
+          borderRadius: '48px',
           opacity: 0,
           zIndex: 50,
           transform: 'scale(1)',
@@ -214,13 +214,15 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
           >
             {/* STEP 1: Select Type */}
             <div className="w-1/4 h-full px-6 pb-6 overflow-y-auto no-scrollbar flex flex-col space-y-4 justify-center">
-              <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">What are we tracking?</h2>
-              {[LogType.WORKOUT, LogType.REST, LogType.REFLECT].map((type) => (
+              <h2 className={`text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white ${step === 1 ? 'animate-spring-up delay-1' : ''}`}>
+                What are we tracking?
+              </h2>
+              {[LogType.WORKOUT, LogType.REST, LogType.REFLECT].map((type, index) => (
                 <button
                   key={type}
                   onClick={() => handleTypeSelect(type)}
-                  className="w-full py-6 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm text-lg font-medium text-gray-900 dark:text-white
-                    hover:scale-[1.02] hover:shadow-lg hover:border-black/30 dark:hover:border-white/30 transition-all duration-300 active:scale-[0.98]"
+                  className={`w-full py-6 rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm text-lg font-medium text-gray-900 dark:text-white
+                    hover:scale-[1.02] hover:shadow-lg hover:border-black/30 dark:hover:border-white/30 transition-all duration-300 active:scale-[0.98] ${step === 1 ? `animate-spring-up delay-${index + 2}` : ''}`}
                 >
                   {type}
                 </button>
@@ -232,7 +234,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
               <div className="flex flex-col space-y-6 py-4 h-full">
                 {/* Custom Dropdown for Workout Type */}
                 {selectedType === LogType.WORKOUT && (
-                  <div className="flex flex-col space-y-2 relative z-20">
+                  <div className={`flex flex-col space-y-2 relative z-20 ${step === 2 ? 'animate-spring-up delay-1' : ''}`}>
                     <label className="text-gray-500 dark:text-zinc-400 text-sm ml-1">Select workout type</label>
 
                     <div ref={dropdownRef} className="relative">
@@ -273,7 +275,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
 
                 {/* Reason Selector for Reflection */}
                 {selectedType === LogType.REFLECT && (
-                  <div className="flex flex-col space-y-2">
+                  <div className={`flex flex-col space-y-2 ${step === 2 ? 'animate-spring-up delay-1' : ''}`}>
                     <label className="text-gray-500 dark:text-zinc-400 text-sm ml-1">Reason</label>
                     <div className="flex flex-wrap gap-2">
                       {[
@@ -306,7 +308,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
                   </div>
                 )}
 
-                <div className="flex flex-col space-y-2 flex-1 relative z-10">
+                <div className={`flex flex-col space-y-2 flex-1 relative z-10 ${step === 2 ? 'animate-spring-up delay-2' : ''}`}>
                   <label className="text-gray-500 dark:text-zinc-400 text-sm ml-1">Insert note</label>
                   <textarea
                     ref={noteInputRef}
@@ -324,7 +326,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
               <div className="flex flex-col space-y-6 h-full py-4">
                 <div
                   onClick={triggerFileInput}
-                  className="w-full flex-1 min-h-[300px] bg-gray-50 dark:bg-zinc-900 border-2 border-dashed border-gray-300 dark:border-zinc-800 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 dark:hover:border-zinc-500 hover:bg-gray-100 dark:hover:bg-zinc-900/80 transition-all relative overflow-hidden group active:scale-[0.99]"
+                  className={`w-full flex-1 min-h-[300px] bg-gray-50 dark:bg-zinc-900 border-2 border-dashed border-gray-300 dark:border-zinc-800 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 dark:hover:border-zinc-500 hover:bg-gray-100 dark:hover:bg-zinc-900/80 transition-all relative overflow-hidden group active:scale-[0.99] ${step === 3 ? 'animate-spring-up delay-1' : ''}`}
                 >
                   <input
                     type="file"
@@ -347,8 +349,8 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
 
             {/* STEP 4: Preview */}
             <div className="w-1/4 h-full px-6 pb-6 overflow-y-auto no-scrollbar flex flex-col items-center justify-center">
-              <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">Preview</h2>
-              <div className="w-full max-w-sm pointer-events-none">
+              <h2 className={`text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white ${step === 4 ? 'animate-spring-up delay-1' : ''}`}>Preview</h2>
+              <div className={`w-full max-w-sm pointer-events-none ${step === 4 ? 'animate-spring-up delay-2' : ''}`}>
                 <ActivityCard
                   username={userProfile.name}
                   type={selectedType!}
@@ -357,7 +359,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
                   imageUrl={photoPreview || undefined}
                 />
               </div>
-              <div className="mt-8 text-center animate-in fade-in duration-500">
+              <div className={`mt-8 text-center ${step === 4 ? 'animate-spring-up delay-3' : ''}`}>
                 <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                   Private log
                 </p>

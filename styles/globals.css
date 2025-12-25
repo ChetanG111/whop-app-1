@@ -78,3 +78,59 @@
 .animate-bounce-loading {
   animation: bounceLoading 1.4s ease-in-out infinite;
 }
+
+/* Snappy Bouncy Spring Animation for Children - Dramatically Exaggerated */
+@keyframes snappySlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.85);
+    /* Much lower and smaller start */
+    filter: blur(4px);
+    /* Add blur for speed feel */
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-spring-up {
+  /* High tension spring: fast initial movement with noticeable elasticity */
+  animation: snappySlideUp 600ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+/* Stagger Delays (~0.065s) */
+.delay-0 {
+  animation-delay: 0ms;
+}
+
+.delay-1 {
+  animation-delay: 65ms;
+}
+
+.delay-2 {
+  animation-delay: 130ms;
+}
+
+.delay-3 {
+  animation-delay: 195ms;
+}
+
+.delay-4 {
+  animation-delay: 260ms;
+}
+
+.delay-5 {
+  animation-delay: 325ms;
+}
+
+.delay-6 {
+  animation-delay: 390ms;
+}
+
+.delay-7 {
+  animation-delay: 455ms;
+}
