@@ -160,6 +160,58 @@ export async function getPublicFeed(
 }
 
 /**
+ * Get public feed for a company (by company ID)
+ */
+export async function getPublicFeedByWhop(
+    companyId: string,
+    limit: number = 50
+): Promise<CheckinWithProfile[]> {
+    const supabase = await createClient();
+
+    // Get users in this company
+    const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('whop_company_id', companyId);
+
+    if (usersError || !users) {
+        console.error('Error getting users for company:', usersError);
+        return [];
+    }
+
+    const userIds = users.map(u => u.id);
+
+    if (userIds.length === 0) {
+        return [];
+    }
+
+    // Get public check-ins from these users
+    const { data, error } = await supabase
+        .from('checkins')
+        .select(`
+      *,
+      users (
+        user_profiles (
+          display_name,
+          avatar_url
+        )
+      )
+    `)
+        .in('user_id', userIds)
+        .or('is_note_public.eq.true,is_photo_public.eq.true')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.error('Error getting public feed for company:', error);
+        return [];
+    }
+
+    return (data as CheckinWithProfile[]) || [];
+}
+
+
+/**
  * Update a check-in (note visibility, photo visibility)
  */
 export async function updateCheckin(

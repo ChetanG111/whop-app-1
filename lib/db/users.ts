@@ -8,11 +8,13 @@ import { getAvatarSignedUrl } from '../storage';
  */
 export async function getOrCreateUser(
     whopId: string,
-    whopExperienceId: string
+    whopExperienceId: string,
+    whopCompanyId?: string
 ): Promise<{
     id: string;
     whopId: string;
     whopExperienceId: string;
+    whopCompanyId: string | null;
     role: 'member' | 'admin';
     isNew: boolean;
 } | null> {
@@ -22,6 +24,7 @@ export async function getOrCreateUser(
     const { data, error } = await supabase.rpc('get_or_create_user' as any, {
         p_whop_id: whopId,
         p_whop_experience_id: whopExperienceId,
+        p_whop_company_id: whopCompanyId || null,
     });
 
     if (error) {
@@ -38,6 +41,7 @@ export async function getOrCreateUser(
         id: user.id,
         whopId: user.whop_id,
         whopExperienceId: user.whop_experience_id,
+        whopCompanyId: user.whop_company_id || null,
         role: user.role,
         isNew: user.is_new,
     };
@@ -278,3 +282,106 @@ export async function getAllMembersByExperience(
         return 0;
     });
 }
+
+/**
+ * Get all members for a Whop (Company) with their stats
+ */
+export async function getAllMembersByWhop(
+    companyId: string
+): Promise<MemberData[]> {
+    const supabase = await createClient();
+
+    // Get all users for this company
+    const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select(`
+            id,
+            whop_id,
+            role,
+            created_at,
+            user_profiles (
+                display_name,
+                avatar_url
+            ),
+            user_streaks (
+                current_streak,
+                longest_streak,
+                last_checkin_date
+            )
+        `)
+        .eq('whop_company_id', companyId);
+
+    if (usersError) {
+        console.error('Error fetching company members:', usersError);
+        return [];
+    }
+
+    if (!users || users.length === 0) {
+        return [];
+    }
+
+    // Get check-in counts for all users in this Whop
+    const userIds = users.map(u => u.id);
+    const { data: checkinCounts, error: countError } = await supabase
+        .from('checkins')
+        .select('user_id')
+        .in('user_id', userIds);
+
+    if (countError) {
+        console.error('Error fetching check-in counts:', countError);
+    }
+
+    // Count check-ins per user
+    const countMap = new Map<string, number>();
+    if (checkinCounts) {
+        checkinCounts.forEach(c => {
+            const userId = c.user_id as string;
+            countMap.set(userId, (countMap.get(userId) || 0) + 1);
+        });
+    }
+
+    // Map to MemberData structure and resolve avatar URLs
+    const membersWithAvatars = await Promise.all(users.map(async user => {
+        // Handle the nested profile data - can be array or object
+        const profileData = Array.isArray(user.user_profiles)
+            ? user.user_profiles[0]
+            : user.user_profiles;
+        const streakData = Array.isArray(user.user_streaks)
+            ? user.user_streaks[0]
+            : user.user_streaks;
+
+        // Convert avatar path to signed URL if it exists and is a storage path
+        let avatarUrl: string | null = profileData?.avatar_url || null;
+        if (avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://') && !avatarUrl.startsWith('data:')) {
+            const signedUrl = await getAvatarSignedUrl(avatarUrl);
+            avatarUrl = signedUrl;
+        }
+
+        return {
+            userId: user.id,
+            username: user.whop_id, // Use whop_id as fallback username
+            displayName: profileData?.display_name || null,
+            avatarUrl,
+            role: (user.role || 'member') as 'member' | 'admin',
+            totalCheckins: countMap.get(user.id) || 0,
+            currentStreak: streakData?.current_streak || 0,
+            longestStreak: streakData?.longest_streak || 0,
+            lastCheckinDate: streakData?.last_checkin_date || null,
+            createdAt: user.created_at,
+        };
+    }));
+
+    // Sort by last activity (most recent first), then by creation date
+    return membersWithAvatars.sort((a, b) => {
+        if (a.lastCheckinDate && b.lastCheckinDate) {
+            return new Date(b.lastCheckinDate).getTime() - new Date(a.lastCheckinDate).getTime();
+        }
+        if (a.lastCheckinDate) return -1;
+        if (b.lastCheckinDate) return 1;
+        if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return 0;
+    });
+}
+

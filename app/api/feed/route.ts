@@ -14,17 +14,21 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const experienceId = searchParams.get('experienceId');
+        const companyId = searchParams.get('companyId');
         const limit = parseInt(searchParams.get('limit') || '50');
 
-        if (!experienceId) {
+        if (!experienceId && !companyId) {
             return NextResponse.json(
-                { error: 'Missing experienceId' },
+                { error: 'Missing experienceId or companyId' },
                 { status: 400 }
             );
         }
 
         // Check cache first
-        const cacheKey = CACHE_KEYS.feed(experienceId);
+        const cacheKey = experienceId
+            ? CACHE_KEYS.feed(experienceId)
+            : CACHE_KEYS.companyFeed(companyId!);
+
         const cachedFeed = await cacheGet<CheckinWithProfile[]>(cacheKey);
 
         if (cachedFeed) {
@@ -36,7 +40,14 @@ export async function GET(request: NextRequest) {
         }
 
         // Cache miss - fetch from DB
-        const feed = await getPublicFeed(experienceId, limit);
+        let feed: CheckinWithProfile[] = [];
+
+        if (experienceId) {
+            feed = await getPublicFeed(experienceId, limit);
+        } else if (companyId) {
+            const { getPublicFeedByWhop } = await import('@/lib/db/checkins');
+            feed = await getPublicFeedByWhop(companyId, limit);
+        }
 
         // Cache the result
         await cacheSet(cacheKey, feed, CACHE_TTL.FEED);

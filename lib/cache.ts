@@ -32,6 +32,12 @@ export const CACHE_KEYS = {
 
     /** Streak leaderboard for an experience */
     leaderboard: (experienceId: string) => `cache:leaderboard:${experienceId}`,
+
+    /** Public feed for a company (dashboard view) */
+    companyFeed: (companyId: string) => `cache:company:feed:${companyId}`,
+
+    /** Members list for a company (dashboard view) */
+    companyMembers: (companyId: string) => `cache:company:members:${companyId}`,
 };
 
 // ============================================

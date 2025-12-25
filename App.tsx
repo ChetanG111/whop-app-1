@@ -5,13 +5,11 @@ import { LogModal } from './components/LogModal';
 import { ProfileModal } from './components/ProfileModal';
 import { HeatmapModal } from './components/HeatmapModal';
 import { ActivityModal } from './components/ActivityModal';
-import { CoachDashboard } from './components/CoachDashboard';
 import { FeedView } from './components/FeedView';
 import { YouView } from './components/YouView';
 import { ErrorToast } from './components/ui';
 
 import { LogEntry } from './types';
-import type { MemberData } from './lib/api';
 
 // Props interface for Whop integration
 interface AppProps {
@@ -22,7 +20,6 @@ interface AppProps {
   // Data from useAppData hook
   feedItems?: LogEntry[];
   myActivities?: LogEntry[];
-  members?: MemberData[];
   userProfile?: { name: string; bio: string; avatar: string };
   streak?: { current: number; longest: number } | null;
   // Handlers
@@ -44,7 +41,6 @@ const App: React.FC<AppProps> = ({
   // Data from parent
   feedItems: propFeedItems = [],
   myActivities: propMyActivities = [],
-  members: propMembers = [],
   userProfile: propUserProfile,
   streak,
   // Handlers from parent
@@ -218,121 +214,110 @@ const App: React.FC<AppProps> = ({
         duration={6000}
       />
 
-      {/* Conditional Rendering based on Coach/Member mode */}
-      {isCoachMode ? (
-        <CoachDashboard
-          items={feedItems}
-          members={propMembers}
-          onActivityClick={openActivityModal}
-          isLoading={isLoading}
-        />
-      ) : (
-        <>
-          {/* Main Member Content */}
-          <main className="flex-1 w-full relative pt-6 overflow-hidden">
-            <div
-              className={`flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform ${activeView === ViewState.FEED ? 'translate-x-0' : '-translate-x-1/2'
-                }`}
-            >
-              {/* Feed Section */}
-              <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
-                <FeedView items={feedItems} onActivityClick={openActivityModal} isLoading={isLoading} />
-              </div>
-
-              {/* You Section */}
-              <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
-                <YouView
-                  onOpenHeatmap={openHeatmapModal}
-                  onActivityClick={openActivityModal}
-                  userProfile={userProfile}
-                  activities={myActivities}
-                  isLoading={isLoading}
-                />
-              </div>
-            </div>
-          </main>
-
-          {/* Bottom Navigation Bar - Member Only - Updated Colors */}
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 w-full max-w-sm px-4 pointer-events-none">
-
-            {/* Profile Button (Left) - Indigo Icon */}
-            <button
-              ref={profileButtonRef}
-              onClick={() => openProfileModal(false)}
-              className={`w-12 h-12 rounded-[2rem] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-brand-600 dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-gray-50 dark:hover:bg-zinc-800 active:scale-90 transition-all duration-300 overflow-hidden ${isProfileModalOpen ? 'opacity-0' : 'opacity-100'}`}
-            >
-              <User size={24} />
-            </button>
-
-            {/* Center Pill Switch with Sliding Animation - Coach Colors */}
-            <div className="flex-1 flex justify-center pointer-events-auto">
-              <div className="relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[2rem] p-1.5 flex items-center shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-zinc-900/90 active:scale-95 transition-transform duration-200">
-                {/* Sliding Background - Indigo Tint */}
-                <div
-                  className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-brand-50 dark:bg-brand-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
-                  style={{
-                    width: 'calc(50% - 6px)',
-                    left: activeView === ViewState.FEED ? '6px' : 'calc(50% + 0px)'
-                  }}
-                />
-
-                <button
-                  onClick={() => setActiveView(ViewState.FEED)}
-                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.FEED ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                >
-                  <LayoutList size={18} className={`transition-transform duration-300 ${activeView === ViewState.FEED ? 'scale-110' : 'scale-100'}`} />
-                  <span className={`transition-all duration-300 ${activeView === ViewState.FEED ? 'opacity-100 translate-x-0' : 'opacity-80 -translate-x-0.5'}`}>Feed</span>
-                </button>
-                <button
-                  onClick={() => setActiveView(ViewState.YOU)}
-                  className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.YOU ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                >
-                  <User size={18} className={`transition-transform duration-300 ${activeView === ViewState.YOU ? 'scale-110' : 'scale-100'}`} />
-                  <span className={`transition-all duration-300 ${activeView === ViewState.YOU ? 'opacity-100 translate-x-0' : 'opacity-80 translate-x-0.5'}`}>You</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Plus Button (Right) - Black BG/White Icon */}
-            <button
-              ref={logButtonRef}
-              onClick={openLogModal}
-              className={`w-12 h-12 rounded-[2rem] bg-black dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-white dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-zinc-800 active:scale-90 transition-all duration-300 ${isLogModalOpen ? 'opacity-0' : 'opacity-100'}`}
-            >
-              <Plus size={26} />
-            </button>
+      {/* Main Member Content - Experience View always shows member UI */}
+      {/* Admins use the Dashboard view (/dashboard/[companyId]) for coach features */}
+      <main className="flex-1 w-full relative pt-6 overflow-hidden">
+        <div
+          className={`flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform ${activeView === ViewState.FEED ? 'translate-x-0' : '-translate-x-1/2'
+            }`}
+        >
+          {/* Feed Section */}
+          <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
+            <FeedView items={feedItems} onActivityClick={openActivityModal} isLoading={isLoading} />
           </div>
 
-          {/* Member Specific Modals */}
-          <LogModal
-            isOpen={isLogModalOpen}
-            onClose={() => setIsLogModalOpen(false)}
-            onLog={handleLog}
-            triggerRect={logTriggerRect}
-            userProfile={userProfile}
-          />
+          {/* You Section */}
+          <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
+            <YouView
+              onOpenHeatmap={openHeatmapModal}
+              onActivityClick={openActivityModal}
+              userProfile={userProfile}
+              activities={myActivities}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+      </main>
 
-          <ProfileModal
-            isOpen={isProfileModalOpen}
-            onClose={() => setIsProfileModalOpen(false)}
-            profile={userProfile}
-            onUpdateProfile={handleProfileUpdate}
-            triggerRect={profileTriggerRect}
-            isDarkMode={isDarkMode}
-            toggleTheme={toggleTheme}
-          />
+      {/* Bottom Navigation Bar */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 w-full max-w-sm px-4 pointer-events-none">
 
-          <HeatmapModal
-            isOpen={isHeatmapModalOpen}
-            onClose={() => setIsHeatmapModalOpen(false)}
-            triggerRect={heatmapTriggerRect}
-            logs={myActivities}
-            onActivityClick={openActivityModal}
-          />
-        </>
-      )}
+        {/* Profile Button (Left) - Indigo Icon */}
+        <button
+          ref={profileButtonRef}
+          onClick={() => openProfileModal(false)}
+          className={`w-12 h-12 rounded-[2rem] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-brand-600 dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-gray-50 dark:hover:bg-zinc-800 active:scale-90 transition-all duration-300 overflow-hidden ${isProfileModalOpen ? 'opacity-0' : 'opacity-100'}`}
+        >
+          <User size={24} />
+        </button>
+
+        {/* Center Pill Switch with Sliding Animation - Coach Colors */}
+        <div className="flex-1 flex justify-center pointer-events-auto">
+          <div className="relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[2rem] p-1.5 flex items-center shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-zinc-900/90 active:scale-95 transition-transform duration-200">
+            {/* Sliding Background - Indigo Tint */}
+            <div
+              className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-brand-50 dark:bg-brand-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
+              style={{
+                width: 'calc(50% - 6px)',
+                left: activeView === ViewState.FEED ? '6px' : 'calc(50% + 0px)'
+              }}
+            />
+
+            <button
+              onClick={() => setActiveView(ViewState.FEED)}
+              className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.FEED ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+            >
+              <LayoutList size={18} className={`transition-transform duration-300 ${activeView === ViewState.FEED ? 'scale-110' : 'scale-100'}`} />
+              <span className={`transition-all duration-300 ${activeView === ViewState.FEED ? 'opacity-100 translate-x-0' : 'opacity-80 -translate-x-0.5'}`}>Feed</span>
+            </button>
+            <button
+              onClick={() => setActiveView(ViewState.YOU)}
+              className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.YOU ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+            >
+              <User size={18} className={`transition-transform duration-300 ${activeView === ViewState.YOU ? 'scale-110' : 'scale-100'}`} />
+              <span className={`transition-all duration-300 ${activeView === ViewState.YOU ? 'opacity-100 translate-x-0' : 'opacity-80 translate-x-0.5'}`}>You</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Plus Button (Right) - Black BG/White Icon */}
+        <button
+          ref={logButtonRef}
+          onClick={openLogModal}
+          className={`w-12 h-12 rounded-[2rem] bg-black dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-white dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-zinc-800 active:scale-90 transition-all duration-300 ${isLogModalOpen ? 'opacity-0' : 'opacity-100'}`}
+        >
+          <Plus size={26} />
+        </button>
+      </div>
+
+      {/* Modals */}
+      <LogModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+        onLog={handleLog}
+        triggerRect={logTriggerRect}
+        userProfile={userProfile}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        profile={userProfile}
+        onUpdateProfile={handleProfileUpdate}
+        triggerRect={profileTriggerRect}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+      />
+
+      <HeatmapModal
+        isOpen={isHeatmapModalOpen}
+        onClose={() => setIsHeatmapModalOpen(false)}
+        triggerRect={heatmapTriggerRect}
+        logs={myActivities}
+        onActivityClick={openActivityModal}
+      />
 
       {/* Shared Activity Details Modal */}
       <ActivityModal

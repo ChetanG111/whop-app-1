@@ -1,25 +1,23 @@
 import { headers } from "next/headers";
 import { whopsdk } from "@/lib/whop-sdk";
-import ClientApp from "./client-page.tsx";
+import DashboardClient from "./client-page";
 
 // Development fallback configuration
 const DEV_USER = {
-    userId: process.env.DEV_USER_ID || "dev_user_123",
-    username: process.env.DEV_USERNAME || "DevUser",
-    isAdmin: process.env.DEV_IS_ADMIN === "true",
+    userId: process.env.DEV_USER_ID || "dev_admin_123",
+    username: process.env.DEV_USERNAME || "DevAdmin",
 };
 
-export default async function ExperiencePage({
+export default async function DashboardPage({
     params,
 }: {
-    params: Promise<{ experienceId: string }>;
+    params: Promise<{ companyId: string }>;
 }) {
-    const { experienceId } = await params;
+    const { companyId } = await params;
     const isDevelopment = process.env.NODE_ENV === "development";
 
     let userId: string;
     let username: string;
-    let isAdmin: boolean;
     let isDevMode = false;
 
     // Helper to add timeout to promises
@@ -40,18 +38,20 @@ export default async function ExperiencePage({
         );
         userId = tokenResult.userId;
 
-        // Check if user has access to this experience (with 5s timeout)
+        // Check if user has access to this company - must be admin (with 5s timeout)
         const access = await withTimeout(
-            whopsdk.users.checkAccess(experienceId, { id: userId }),
+            whopsdk.users.checkAccess(companyId, { id: userId }),
             5000
         );
 
-        if (!access.has_access) {
+        if (access.access_level !== "admin") {
             return (
-                <div className="h-screen w-full flex items-center justify-center bg-black text-white">
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-                        <p className="text-gray-400">You don&apos;t have access to this experience.</p>
+                <div className="h-screen w-full flex items-center justify-center bg-background text-foreground">
+                    <div className="text-center p-6 max-w-md">
+                        <h1 className="text-2xl font-bold mb-2 text-destructive">Access Denied</h1>
+                        <p className="text-muted-foreground">
+                            You need administrator privileges to access the dashboard view.
+                        </p>
                     </div>
                 </div>
             );
@@ -62,19 +62,17 @@ export default async function ExperiencePage({
             whopsdk.users.retrieve(userId),
             5000
         );
-        username = user.username || user.name || "User";
-        isAdmin = access.access_level === "admin";
+        username = user.username || user.name || "Admin";
+
     } catch (error) {
         // In development, use fallback mock data
         if (isDevelopment) {
             console.warn(
-                "⚠️ Whop auth failed or timed out. Using development fallback.",
-                "\n   Error:", error instanceof Error ? error.message : error,
-                "\n   To use real authentication, run your app inside the Whop iframe."
+                "⚠️ Whop auth failed or timed out. Using development fallback for Dashboard.",
+                "\n   Error:", error instanceof Error ? error.message : error
             );
             userId = DEV_USER.userId;
             username = DEV_USER.username;
-            isAdmin = DEV_USER.isAdmin;
             isDevMode = true;
         } else {
             // In production, re-throw the error
@@ -85,15 +83,14 @@ export default async function ExperiencePage({
     return (
         <>
             {isDevMode && (
-                <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black dark:text-white text-center py-1 text-sm font-medium">
-                    🚧 Development Mode - Using mock user: {username} {isAdmin ? "(Admin)" : "(Member)"}
+                <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 text-black text-center py-1 text-sm font-medium">
+                    🚧 Development Mode - Using mock admin: {username}
                 </div>
             )}
-            <ClientApp
-                experienceId={experienceId}
+            <DashboardClient
+                companyId={companyId}
                 userId={userId}
                 username={username}
-                isAdmin={isAdmin}
             />
         </>
     );

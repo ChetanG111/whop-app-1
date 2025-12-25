@@ -8,20 +8,24 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const experienceId = searchParams.get('experienceId');
+        const companyId = searchParams.get('companyId');
 
-        if (!experienceId) {
+        if (!experienceId && !companyId) {
             return NextResponse.json(
-                { error: 'Missing experienceId' },
+                { error: 'Missing experienceId or companyId' },
                 { status: 400 }
             );
         }
 
-        // Rate limit by experience ID (coach-only endpoint typically)
-        const rateLimitResult = await checkRateLimit(readLimiter, experienceId);
+        // Rate limit by ID (coach-only endpoint typically)
+        const rateLimitResult = await checkRateLimit(readLimiter, experienceId || companyId!);
         if (!rateLimitResult.success) return rateLimitResult.response!;
 
         // Check cache first
-        const cacheKey = CACHE_KEYS.members(experienceId);
+        const cacheKey = experienceId
+            ? CACHE_KEYS.members(experienceId)
+            : CACHE_KEYS.companyMembers(companyId!);
+
         const cachedMembers = await cacheGet<MemberData[]>(cacheKey);
 
         if (cachedMembers) {
@@ -29,7 +33,14 @@ export async function GET(request: NextRequest) {
         }
 
         // Cache miss - fetch from DB
-        const members = await getAllMembersByExperience(experienceId);
+        let members: MemberData[] = [];
+
+        if (experienceId) {
+            members = await getAllMembersByExperience(experienceId);
+        } else if (companyId) {
+            const { getAllMembersByWhop } = await import('@/lib/db/users');
+            members = await getAllMembersByWhop(companyId);
+        }
 
         // Cache the result
         await cacheSet(cacheKey, members, CACHE_TTL.MEMBERS);

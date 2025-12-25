@@ -23,4 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 .next
+.whop-views-docs.txt
 .env.local  
