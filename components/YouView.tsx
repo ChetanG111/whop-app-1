@@ -51,12 +51,12 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
 
     return (
         <div className="w-full max-w-2xl mx-auto p-4 pb-32">
-            <div className="flex items-center gap-3 mb-6 px-1">
+            <div className="flex items-center gap-3 mb-6 px-1 animate-spring-up delay-1">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Dashboard</h1>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-3 gap-3 mb-6 animate-spring-up delay-2">
                 <div className={`bg-white dark:bg-zinc-900 p-3 py-4 rounded-2xl border border-gray-200 dark:border-zinc-800 text-center shadow-sm flex flex-col justify-center min-h-[100px] ${cardHoverClasses}`}>
                     <span className="block text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{activities.length}</span>
                     <span className="text-[10px] sm:text-xs text-gray-500 dark:text-zinc-500 uppercase tracking-wider font-bold mt-1">Total Logs</span>
@@ -71,7 +71,7 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
                 </div>
             </div>
 
-            <div className="mb-8 group">
+            <div className="mb-8 group animate-spring-up delay-3">
                 <div
                     onClick={handleHeatmapClick}
                     className={`relative w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-900 rounded-2xl p-5 pb-8 shadow-sm ${cardHoverClasses} group`}
@@ -86,7 +86,7 @@ export const YouView: React.FC<YouViewProps> = ({ onOpenHeatmap, onActivityClick
             </div>
 
             {/* Personal Activity Feed */}
-            <div className="space-y-4">
+            <div className="space-y-4 animate-spring-up delay-4">
                 <h3 className="text-lg font-semibold px-1 text-gray-500 dark:text-zinc-400">Recent History</h3>
                 <div className="flex flex-col space-y-3">
                     {activities.map(item => (

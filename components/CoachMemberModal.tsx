@@ -38,7 +38,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                 left: `${triggerRect.left}px`,
                 width: `${triggerRect.width}px`,
                 height: `${triggerRect.height}px`,
-                borderRadius: '1rem',
+                borderRadius: '16px',
                 opacity: 1,
                 zIndex: 50,
                 overflow: 'hidden',
@@ -65,10 +65,11 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                         left: `${targetLeft}px`,
                         width: `${targetW}px`,
                         height: `${targetH}px`,
-                        borderRadius: '1.5rem',
+                        borderRadius: '24px',
                         zIndex: 50,
                         opacity: 1,
-                        transition: 'all 500ms cubic-bezier(0.32, 0.72, 0, 1)',
+                        // Heavy Spring Balanced (1.15 overshoot)
+                        transition: 'all 550ms cubic-bezier(0.175, 0.885, 0.32, 1.15)',
                         overflow: 'hidden'
                     });
 
@@ -84,7 +85,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                     left: `${triggerRect.left}px`,
                     width: `${triggerRect.width}px`,
                     height: `${triggerRect.height}px`,
-                    borderRadius: '1rem',
+                    borderRadius: '16px',
                     opacity: 0,
                     zIndex: 50,
                     overflow: 'hidden',
@@ -115,22 +116,24 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
 
                 {/* Header */}
                 <div className={`flex items-center justify-between p-6 shrink-0 bg-white dark:bg-zinc-950 z-20 border-b border-gray-100 dark:border-zinc-900 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xl font-bold overflow-hidden">
-                            {memberData.avatarUrl ? (
-                                <img src={memberData.avatarUrl} alt={memberData.displayName || memberData.username} className="w-full h-full object-cover" />
-                            ) : (
-                                (memberData.displayName || memberData.username).charAt(0).toUpperCase()
-                            )}
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{memberData.displayName || memberData.username}</h2>
-                            <p className="text-gray-500 dark:text-zinc-500 text-sm">Member Details</p>
+                    <div className={showContent ? 'animate-spring-up delay-1' : ''}>
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xl font-bold overflow-hidden">
+                                {memberData.avatarUrl ? (
+                                    <img src={memberData.avatarUrl} alt={memberData.displayName || memberData.username} className="w-full h-full object-cover" />
+                                ) : (
+                                    (memberData.displayName || memberData.username).charAt(0).toUpperCase()
+                                )}
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{memberData.displayName || memberData.username}</h2>
+                                <p className="text-gray-500 dark:text-zinc-500 text-sm">Member Details</p>
+                            </div>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors"
+                        className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-900 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 transition-colors ${showContent ? 'animate-spring-up delay-2' : ''}`}
                     >
                         <X size={20} />
                     </button>
@@ -142,7 +145,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                     <div className="p-6 space-y-6">
 
                         {/* Stats Row */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className={`grid grid-cols-3 gap-3 ${showContent ? 'animate-spring-up delay-3' : ''}`}>
                             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-sm">
                                 <Activity className="mb-2 text-brand-500" size={20} />
                                 <span className="text-2xl font-bold text-gray-900 dark:text-white">{memberData.totalCheckins}</span>
@@ -161,7 +164,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                         </div>
 
                         {/* Heatmap Section */}
-                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+                        <div className={`bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm ${showContent ? 'animate-spring-up delay-4' : ''}`}>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 <Calendar size={16} />
                                 Consistency Map
@@ -170,7 +173,7 @@ export const CoachMemberModal: React.FC<CoachMemberModalProps> = ({
                         </div>
 
                         {/* Logs List */}
-                        <div>
+                        <div className={showContent ? 'animate-spring-up delay-5' : ''}>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 px-1">
                                 Recent Public Activity
                             </h3>

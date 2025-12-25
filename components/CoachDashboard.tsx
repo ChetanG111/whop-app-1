@@ -46,7 +46,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
             {/* Fixed Header */}
             <div className="shrink-0 w-full max-w-3xl mx-auto p-4 pt-8 z-10">
                 <div className="flex items-start justify-between px-1">
-                    <div>
+                    <div className="animate-spring-up delay-1">
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                             <LayoutDashboard className="text-brand-600 dark:text-brand-400" size={32} />
                             Coach Dashboard
@@ -55,7 +55,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
                             Manage your members.
                         </p>
                     </div>
-                    <div className="bg-brand-50 dark:bg-brand-900/20 px-3 py-2 rounded-full border border-brand-100 dark:border-brand-900/50 flex items-center gap-1.5">
+                    <div className="bg-brand-50 dark:bg-brand-900/20 px-3 py-2 rounded-full border border-brand-100 dark:border-brand-900/50 flex items-center gap-1.5 animate-spring-up delay-2">
                         <Users size={16} className="text-brand-600 dark:text-brand-400" />
                         <span className="text-sm font-bold text-brand-700 dark:text-brand-300">
                             {members.length} Members
@@ -76,7 +76,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ items, members, 
                             <p className="text-sm mt-2">Members will appear here once they join.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-spring-up delay-3">
                             {members.map((member) => {
                                 const displayName = member.displayName || member.username;
                                 const lastActiveText = member.lastCheckinDate

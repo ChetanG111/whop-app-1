@@ -179,9 +179,9 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                     {/* Info Panel - Below heatmap */}
                     <div className={`w-full shrink-0 border-t border-gray-200 dark:border-zinc-900 bg-white dark:bg-zinc-900/20 p-5 overflow-hidden ${showContent ? 'animate-spring-up delay-4' : ''}`}>
                         {selectedDate ? (
-                            <div key={selectedDate.toString()} className="flex flex-col animate-slide-up">
+                            <div key={selectedDate.toString()} className="flex flex-col">
                                 <div className="flex items-center justify-between mb-4">
-                                    <div>
+                                    <div className="animate-spring-up delay-1">
                                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                                             {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </h3>
@@ -190,14 +190,14 @@ export const HeatmapModal: React.FC<HeatmapModalProps> = ({ isOpen, onClose, tri
                                         </p>
                                     </div>
                                     {details?.type !== 'No Activity' && (
-                                        <span className="text-xs font-medium text-gray-400 dark:text-zinc-600">Click for details</span>
+                                        <span className="text-xs font-medium text-gray-400 dark:text-zinc-600 animate-spring-up delay-2">Click for details</span>
                                     )}
                                 </div>
 
                                 {/* Interactive Card */}
                                 <div
                                     onClick={handleCardClick}
-                                    className={`p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm transition-all duration-200 ${details?.type !== 'No Activity'
+                                    className={`p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm transition-all duration-200 animate-spring-up delay-3 ${details?.type !== 'No Activity'
                                         ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 hover:scale-[1.01] active:scale-[0.99] hover:shadow-md border-transparent dark:hover:border-zinc-700'
                                         : ''
                                         }`}
