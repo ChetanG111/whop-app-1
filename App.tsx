@@ -1,13 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Plus, User, LayoutList } from 'lucide-react';
-import { ViewState, LogType, UserProfile, WorkoutType } from './types';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { LogType, UserProfile, WorkoutType } from './types';
 import { LogModal } from './components/LogModal';
 import { ProfileModal } from './components/ProfileModal';
 import { HeatmapModal } from './components/HeatmapModal';
 import { ActivityModal } from './components/ActivityModal';
-import { FeedView } from './components/FeedView';
+// FeedView removed - community pages hidden
 import { YouView } from './components/YouView';
 import { ErrorToast } from './components/ui';
+
+// Animated icons from animate-ui
+import { Plus as AnimatedPlus } from './components/animate-ui/icons/plus';
+import { User as AnimatedUser } from './components/animate-ui/icons/user';
 
 import { LogEntry } from './types';
 
@@ -53,7 +56,8 @@ const App: React.FC<AppProps> = ({
   isSubmitting = false,
   error,
 }) => {
-  const [activeView, setActiveView] = useState<ViewState>(ViewState.FEED);
+  // Community feed view removed - always show "You" view
+  // const [activeView, setActiveView] = useState<ViewState>(ViewState.YOU);
   // isCoachMode is controlled by the prop from server (Whop access level or DEV_IS_ADMIN)
   const isCoachMode = initialCoachMode;
 
@@ -128,15 +132,13 @@ const App: React.FC<AppProps> = ({
 
   const handleLog = async (data: any) => {
     if (onCreateCheckin) {
-      // Use API handler
+      // Use API handler - all logs are private (no community feed)
       const success = await onCreateCheckin({
         type: data.type,
         workoutType: data.workoutType,
         reflectReason: data.reason,
         note: data.note,
-        isPublicNote: data.isPublicNote,
         photoFile: data.photoFile, // Pass the File object for upload
-        isPublicPhoto: data.isPublicPhoto,
       });
       if (success) {
         setIsLogModalOpen(false);
@@ -148,16 +150,9 @@ const App: React.FC<AppProps> = ({
   };
 
   const handleUpdateActivity = async (updatedActivity: any) => {
-    // 1. Optimistic Update: Update UI immediately
+    // Optimistic Update: Update UI immediately
     setSelectedActivity(updatedActivity);
-
-    // 2. API Call: Sync to server
-    if (onUpdateCheckin) {
-      await onUpdateCheckin(updatedActivity.id.toString(), {
-        isPublicNote: updatedActivity.isPublicNote,
-        isPublicPhoto: updatedActivity.isPublicPhoto,
-      });
-    }
+    // Note: Public toggles removed - no community feed
   };
 
   const handleDeleteActivity = async (id: string | number) => {
@@ -167,20 +162,21 @@ const App: React.FC<AppProps> = ({
     setIsActivityModalOpen(false);
   };
 
-  const openLogModal = () => {
+  // Open log modal immediately
+  const openLogModal = useCallback(() => {
     if (logButtonRef.current) {
       setLogTriggerRect(logButtonRef.current.getBoundingClientRect());
     }
     setIsLogModalOpen(true);
-  };
+  }, []);
 
-  const openProfileModal = (fromHeader = false) => {
-    const ref = profileButtonRef;
-    if (ref.current) {
-      setProfileTriggerRect(ref.current.getBoundingClientRect());
+  // Open profile modal immediately
+  const openProfileModal = useCallback(() => {
+    if (profileButtonRef.current) {
+      setProfileTriggerRect(profileButtonRef.current.getBoundingClientRect());
     }
     setIsProfileModalOpen(true);
-  };
+  }, []);
 
   const openHeatmapModal = (rect: DOMRect) => {
     setHeatmapTriggerRect(rect);
@@ -215,80 +211,48 @@ const App: React.FC<AppProps> = ({
       />
 
       {/* Main Member Content - Experience View always shows member UI */}
-      {/* Admins use the Dashboard view (/dashboard/[companyId]) for coach features */}
+      {/* Community feed removed - only showing personal "You" view */}
       <main className="flex-1 w-full relative pt-6 overflow-hidden">
-        <div
-          className={`flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform ${activeView === ViewState.FEED ? 'translate-x-0' : '-translate-x-1/2'
-            }`}
-        >
-          {/* Feed Section */}
-          <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
-            <FeedView items={feedItems} onActivityClick={openActivityModal} isLoading={isLoading} />
-          </div>
-
-          {/* You Section */}
-          <div className="w-1/2 h-full overflow-y-auto no-scrollbar">
-            <YouView
-              onOpenHeatmap={openHeatmapModal}
-              onActivityClick={openActivityModal}
-              userProfile={userProfile}
-              activities={myActivities}
-              isLoading={isLoading}
-            />
-          </div>
+        <div className="h-full overflow-y-auto no-scrollbar">
+          <YouView
+            onOpenHeatmap={openHeatmapModal}
+            onActivityClick={openActivityModal}
+            userProfile={userProfile}
+            activities={myActivities}
+            isLoading={isLoading}
+          />
         </div>
       </main>
 
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 w-full max-w-sm px-4 pointer-events-none">
 
-        {/* Profile Button (Left) - Indigo Icon */}
+        {/* Profile Button (Left) - Animated User Icon (hover animation) */}
         <button
           ref={profileButtonRef}
-          onClick={() => openProfileModal(false)}
-          className={`w-12 h-12 rounded-[2rem] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-brand-600 dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-gray-50 dark:hover:bg-zinc-800 active:scale-90 transition-all duration-300 overflow-hidden ${isProfileModalOpen ? 'opacity-0' : 'opacity-100'}`}
+          onClick={openProfileModal}
+          className={`w-12 h-12 rounded-[2rem] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center justify-center text-brand-600 dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-gray-50 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-300 overflow-hidden ${isProfileModalOpen ? 'opacity-0' : 'opacity-100'}`}
         >
-          <User size={24} />
+          <AnimatedUser
+            size={24}
+            animateOnHover
+          />
         </button>
 
-        {/* Center Pill Switch with Sliding Animation - Coach Colors */}
-        <div className="flex-1 flex justify-center pointer-events-auto">
-          <div className="relative bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[2rem] p-1.5 flex items-center shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-zinc-900/90 active:scale-95 transition-transform duration-200">
-            {/* Sliding Background - Indigo Tint */}
-            <div
-              className={`absolute top-1.5 bottom-1.5 rounded-[1.5rem] bg-brand-50 dark:bg-brand-900/30 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]`}
-              style={{
-                width: 'calc(50% - 6px)',
-                left: activeView === ViewState.FEED ? '6px' : 'calc(50% + 0px)'
-              }}
-            />
+        {/* Center space - Feed/You navigation pill removed */}
+        <div className="flex-1" />
 
-            <button
-              onClick={() => setActiveView(ViewState.FEED)}
-              className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.FEED ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-            >
-              <LayoutList size={18} className={`transition-transform duration-300 ${activeView === ViewState.FEED ? 'scale-110' : 'scale-100'}`} />
-              <span className={`transition-all duration-300 ${activeView === ViewState.FEED ? 'opacity-100 translate-x-0' : 'opacity-80 -translate-x-0.5'}`}>Feed</span>
-            </button>
-            <button
-              onClick={() => setActiveView(ViewState.YOU)}
-              className={`relative z-10 w-20 sm:w-24 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 ${activeView === ViewState.YOU ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-            >
-              <User size={18} className={`transition-transform duration-300 ${activeView === ViewState.YOU ? 'scale-110' : 'scale-100'}`} />
-              <span className={`transition-all duration-300 ${activeView === ViewState.YOU ? 'opacity-100 translate-x-0' : 'opacity-80 translate-x-0.5'}`}>You</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Plus Button (Right) - Black BG/White Icon */}
+        {/* Plus Button (Right) - Animated Plus Icon (hover animation) */}
         <button
           ref={logButtonRef}
           onClick={openLogModal}
-          className={`w-12 h-12 rounded-[2rem] bg-black dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-white dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-zinc-800 active:scale-90 transition-all duration-300 ${isLogModalOpen ? 'opacity-0' : 'opacity-100'}`}
+          className={`w-12 h-12 rounded-[2rem] bg-black dark:bg-zinc-900 border border-transparent dark:border-zinc-800 flex items-center justify-center text-white dark:text-brand-400 pointer-events-auto shadow-xl hover:bg-zinc-800 active:scale-95 transition-all duration-300 ${isLogModalOpen ? 'opacity-0' : 'opacity-100'}`}
         >
-          <Plus size={26} />
+          <AnimatedPlus
+            size={26}
+            animateOnHover
+            animation="x"
+          />
         </button>
       </div>
 

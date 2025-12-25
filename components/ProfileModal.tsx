@@ -1,8 +1,12 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { X, Settings, ChevronRight, User, ChevronLeft, Moon, Camera, Sun, Trash2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { X, Settings, ChevronRight, User, ChevronLeft, Camera, Trash2, Loader2 } from 'lucide-react';
 import { UserProfile } from '../types';
-import { ToggleSwitch, ConfirmDialog } from './ui';
+import { ConfirmDialog } from './ui';
 import { useAvatarSignedUrl } from '../hooks';
+
+// Animated toggle icons
+import { ToggleLeft } from './animate-ui/icons/toggle-left';
+import { ToggleRight } from './animate-ui/icons/toggle-right';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -64,6 +68,20 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Toggle animation state for dark mode
+    const [toggleAnimating, setToggleAnimating] = useState(false);
+
+    // Handle dark mode toggle with animation delay
+    const handleThemeToggle = useCallback(() => {
+        if (toggleAnimating) return;
+        setToggleAnimating(true);
+        // Delay theme toggle until animation completes (500ms based on toggle animation duration)
+        setTimeout(() => {
+            setToggleAnimating(false);
+            toggleTheme();
+        }, 550);
+    }, [toggleAnimating, toggleTheme]);
+
     // Animation State
     const [isRendered, setIsRendered] = useState(false);
     const [animStyles, setAnimStyles] = useState<React.CSSProperties>({});
@@ -116,7 +134,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         opacity: 1,
                         zIndex: 50,
                         transform: 'scale(1)',
-                        transition: 'all 450ms cubic-bezier(0.5, 0, 0.1, 1)',
+                        transition: 'all 280ms cubic-bezier(0.5, 0, 0.1, 1)',
                         overflow: 'hidden',
                     });
                 });
@@ -134,12 +152,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     opacity: 0,
                     zIndex: 50,
                     transform: 'scale(1)',
-                    transition: 'all 350ms cubic-bezier(0.5, 0, 0.1, 1)',
+                    transition: 'all 220ms cubic-bezier(0.5, 0, 0.1, 1)',
                     overflow: 'hidden',
                 });
             });
 
-            const timer = setTimeout(() => setIsRendered(false), 350);
+            const timer = setTimeout(() => setIsRendered(false), 220);
             return () => clearTimeout(timer);
         }
     }, [isOpen, triggerRect]);
@@ -347,16 +365,35 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                             Appearance
                                         </h3>
 
-                                        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl">
+                                        <button
+                                            onClick={handleThemeToggle}
+                                            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200 active:scale-[0.98]"
+                                        >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-zinc-300">
-                                                    {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
+                                                    {isDarkMode ? (
+                                                        <ToggleRight
+                                                            size={24}
+                                                            animate={toggleAnimating}
+                                                            completeOnStop
+                                                        />
+                                                    ) : (
+                                                        <ToggleLeft
+                                                            size={24}
+                                                            animate={toggleAnimating}
+                                                            completeOnStop
+                                                        />
+                                                    )}
                                                 </div>
                                                 <span className="font-medium text-gray-900 dark:text-white">Dark Mode</span>
                                             </div>
 
-                                            <ToggleSwitch checked={isDarkMode} onChange={toggleTheme} size="md" />
-                                        </div>
+                                            <div className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-zinc-700'
+                                                }`}>
+                                                <div className={`w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ${isDarkMode ? 'translate-x-5 bg-white dark:bg-black' : 'translate-x-0 bg-white dark:bg-zinc-400'
+                                                    }`} />
+                                            </div>
+                                        </button>
 
                                         <div className="mt-8">
                                             <h3 className="text-xs font-bold text-gray-500 dark:text-zinc-500 uppercase tracking-wider mb-4">

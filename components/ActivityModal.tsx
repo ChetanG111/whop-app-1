@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Trash2, Calendar, Clock, Globe, Lock, ImageOff, Loader2 } from 'lucide-react';
-import { ToggleSwitch, ConfirmDialog, InfoDialog } from './ui';
+import { X, Trash2, Calendar, Clock, ImageOff, Loader2 } from 'lucide-react';
+import { ConfirmDialog, InfoDialog } from './ui';
 import { useSignedUrl } from '../hooks';
 
 interface ActivityModalProps {
@@ -112,10 +112,6 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteError, setShowDeleteError] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    // Toggle Loading States
-    const [isUpdatingNote, setIsUpdatingNote] = useState(false);
-    const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
 
     // Modal Animation Effect
     useEffect(() => {
@@ -229,18 +225,6 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         setTimeout(() => onDelete(activity.id), 1500);
     };
 
-    const togglePublicNote = async () => {
-        setIsUpdatingNote(true);
-        await onUpdate({ ...activity, isPublicNote: !activity.isPublicNote });
-        setIsUpdatingNote(false);
-    };
-
-    const togglePublicPhoto = async () => {
-        setIsUpdatingPhoto(true);
-        await onUpdate({ ...activity, isPublicPhoto: !activity.isPublicPhoto });
-        setIsUpdatingPhoto(false);
-    };
-
     return (
         <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
             {/* Backdrop */}
@@ -314,57 +298,13 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                     </div>
                 </div>
 
-                {/* Footer Controls - Visible if Owner OR Coach */}
+                {/* Footer Controls - Delete button only for Owner OR Coach */}
                 {(isOwner || isCoachMode) && (
                     <div
-                        className={`p-5 border-t border-gray-100 dark:border-zinc-900 bg-gray-50/50 dark:bg-zinc-900/30 flex items-center justify-between gap-4 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'
+                        className={`p-5 border-t border-gray-100 dark:border-zinc-900 bg-gray-50/50 dark:bg-zinc-900/30 flex items-center justify-end gap-4 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-0'
                             }`}
                     >
-                        {/* Left Side: Toggles Group */}
-                        <div className="flex flex-col gap-3 flex-1">
-                            {isOwner && !isCoachMode ? (
-                                <>
-                                    <div className="flex items-center gap-2">
-                                        <ToggleSwitch
-                                            checked={activity.isPublicNote}
-                                            onChange={togglePublicNote}
-                                            label="Public Note"
-                                            icon={<Lock size={16} className="text-gray-400" />}
-                                            activeIcon={<Globe size={16} className="text-blue-500" />}
-                                            size="sm"
-                                            disabled={isUpdatingNote}
-                                        />
-                                        {isUpdatingNote && (
-                                            <Loader2 size={16} className="animate-spin text-brand-500" />
-                                        )}
-                                    </div>
-
-                                    {activity.imageUrl && (
-                                        <div className="flex items-center gap-2">
-                                            <ToggleSwitch
-                                                checked={activity.isPublicPhoto}
-                                                onChange={togglePublicPhoto}
-                                                label="Public Photo"
-                                                icon={<Lock size={16} className="text-gray-400" />}
-                                                activeIcon={<Globe size={16} className="text-blue-500" />}
-                                                size="sm"
-                                                disabled={isUpdatingPhoto}
-                                            />
-                                            {isUpdatingPhoto && (
-                                                <Loader2 size={16} className="animate-spin text-brand-500" />
-                                            )}
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <span className="text-xs font-bold text-brand-500 uppercase tracking-wider">
-                                    Coach Action
-                                </span>
-                            )}
-                        </div>
-
-
-                        {/* Right Side: Delete Button */}
+                        {/* Delete Button */}
                         <button
                             onClick={handleTryDelete}
                             className="flex items-center gap-2 px-5 py-3 text-rose-600 dark:text-rose-500 font-medium rounded-xl bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors active:scale-95 text-sm shrink-0"

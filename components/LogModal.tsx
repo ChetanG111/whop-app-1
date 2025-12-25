@@ -17,8 +17,6 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
   const [workoutType, setWorkoutType] = useState<WorkoutType>(WorkoutType.PUSH);
   const [reflectReason, setReflectReason] = useState<string | null>(null);
   const [note, setNote] = useState<string>('');
-  const [isPublicNote, setIsPublicNote] = useState<boolean>(false);
-  const [isPublicPhoto, setIsPublicPhoto] = useState<boolean>(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
@@ -43,8 +41,6 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
       setWorkoutType(WorkoutType.PUSH);
       setReflectReason(null);
       setNote('');
-      setIsPublicNote(false);
-      setIsPublicPhoto(false);
       setPhotoPreview(null);
       setPhotoFile(null);
       setIsDropdownOpen(false);
@@ -91,7 +87,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
             zIndex: 50,
             transform: 'scale(1)',
             // Slow start, fast snap end (Slow-Fast)
-            transition: 'all 450ms cubic-bezier(0.5, 0, 0.1, 1)',
+            transition: 'all 280ms cubic-bezier(0.5, 0, 0.1, 1)',
             overflow: 'hidden'
           });
         });
@@ -109,14 +105,14 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
           opacity: 0,
           zIndex: 50,
           transform: 'scale(1)',
-          transition: 'all 350ms cubic-bezier(0.5, 0, 0.1, 1)',
+          transition: 'all 220ms cubic-bezier(0.5, 0, 0.1, 1)',
           overflow: 'hidden'
         });
       });
 
       const timer = setTimeout(() => {
         setIsRendered(false);
-      }, 350);
+      }, 220);
       return () => clearTimeout(timer);
     }
   }, [isOpen, triggerRect]);
@@ -172,9 +168,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
       workoutType: selectedType === LogType.WORKOUT ? workoutType : undefined,
       reason: selectedType === LogType.REFLECT ? reflectReason : undefined,
       note,
-      isPublicNote,
       photoFile, // Pass actual file for upload
-      isPublicPhoto
     });
     onClose();
   };
@@ -322,16 +316,6 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
                     className="w-full h-full min-h-[160px] bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-0 focus:border-2 focus:border-dotted focus:border-black dark:focus:border-white transition-all shadow-sm"
                   />
                 </div>
-
-                {/* Toggle */}
-                <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setIsPublicNote(!isPublicNote)}>
-                  <span className="text-gray-900 dark:text-white">Public Note</span>
-                  <button
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isPublicNote ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-zinc-700'}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ${isPublicNote ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-0 bg-white dark:bg-black'}`} />
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -358,15 +342,6 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
                     </div>
                   )}
                 </div>
-
-                <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setIsPublicPhoto(!isPublicPhoto)}>
-                  <span className="text-gray-900 dark:text-white">Public Photo</span>
-                  <button
-                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${isPublicPhoto ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-zinc-700'}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ${isPublicPhoto ? 'translate-x-6 bg-white dark:bg-black' : 'translate-x-0 bg-white dark:bg-black'}`} />
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -384,10 +359,10 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onLog, trig
               </div>
               <div className="mt-8 text-center animate-in fade-in duration-500">
                 <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                  {isPublicNote || isPublicPhoto ? 'Publicly visible' : 'Private log only'}
+                  Private log
                 </p>
                 <p className="text-xs text-gray-500 dark:text-zinc-500">
-                  {isPublicNote || isPublicPhoto ? 'Your community will see this update.' : 'Only you can see this in your history.'}
+                  This will be saved to your personal history.
                 </p>
               </div>
             </div>
